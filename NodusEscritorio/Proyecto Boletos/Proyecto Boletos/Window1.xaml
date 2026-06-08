@@ -1,0 +1,269 @@
+﻿<Window
+  x:Class="Proyecto_Boletos.Window1"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:local="clr-namespace:Proyecto_Boletos"
+  mc:Ignorable="d"
+  Title="Panel"
+  MinHeight="500"
+  MinWidth="900"
+  WindowStartupLocation="CenterScreen"
+  Background="{DynamicResource Color2}"
+  Icon="/Logo_Nodus.png"
+  WindowState="Maximized"
+>
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto" />
+      <ColumnDefinition Width="4*" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="12*" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border
+      Background="{DynamicResource Color1}"
+      BorderBrush="{DynamicResource Color3}"
+      Margin="10"
+      BorderThickness="1"
+      CornerRadius="10"
+    >
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="15">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="auto" />
+          </Grid.ColumnDefinitions>
+          <Button
+            Background="{DynamicResource Color1}"
+            BorderBrush="{DynamicResource Color1}"
+            Height="35"
+            IsCancel="True"
+            Cursor="Hand"
+            Name="btnVolver"
+            Click="btnVolver_Click"
+          >
+            <TextBlock
+              FontFamily="Segoe MDL2 Assets"
+              Text="&#xE830;"
+              FontSize="25"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Foreground="White"
+            />
+          </Button>
+          <TextBlock
+            Text="Panel"
+            Foreground="White"
+            FontSize="18"
+            FontWeight="Bold"
+            VerticalAlignment="Center"
+            Margin="15 0"
+            Grid.Column="1"
+          />
+          <Button
+            x:Name="btnCambio"
+            Height="35"
+            Width="35"
+            Grid.Column="2"
+            Background="{DynamicResource Color1}"
+            BorderBrush="{DynamicResource Color1}"
+            Cursor="Hand"
+            Click="btnCambio_Click"
+          >
+            <TextBlock
+              FontFamily="Segoe MDL2 Assets"
+              Text="{DynamicResource txtActual}"
+              FontSize="25"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Foreground="White"
+            />
+          </Button>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Margin="10 0 10 15" VerticalScrollBarVisibility="Hidden">
+          <StackPanel>
+            <Button
+              x:Name="btnDashboard"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Click="btnDashboard_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xF404;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Dashboard" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnUsuarios"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Click="btnUsuarios_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE716;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Usuarios" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnEventos"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Click="btnEventos_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE8D6;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Eventos" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnRecintos"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Click="btnRecintos_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE731;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Recintos" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnProveedores"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Click="btnProveedores_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE8AB;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Proveedores" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnReportes"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Click="btnReportes_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE9F9;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Reportes" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnCarrito"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Click="btnCarrito_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE7BF;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Carrito" Margin="10 0" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
+    <Border
+      Background="{DynamicResource Color3}"
+      BorderBrush="{DynamicResource Color1}"
+      BorderThickness="1"
+      Margin="10"
+      CornerRadius="10"
+      Grid.Column="1"
+    >
+      <ContentControl x:Name="MainContent" />
+    </Border>
+
+    <Border
+      Background="{DynamicResource Color1}"
+      BorderBrush="{DynamicResource Color3}"
+      BorderThickness="1"
+      Margin="10 0 10 10"
+      CornerRadius="10"
+      Grid.ColumnSpan="2"
+      Grid.Row="1"
+    >
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Usuario:" Style="{StaticResource InfoUsuario}" Grid.Column="0" />
+        <TextBlock Name="tbUsuario" Style="{StaticResource InfoUsuario}" Grid.Column="1" />
+        <TextBlock Text="Rol:" Style="{StaticResource InfoUsuario}" Grid.Column="2" />
+        <TextBlock Name="tbRol" Style="{StaticResource InfoUsuario}" Grid.Column="3" />
+        <TextBlock
+          Name="tbFechaHora"
+          Style="{StaticResource InfoUsuario}"
+          HorizontalAlignment="Center"
+          Grid.Column="4"
+        />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>
