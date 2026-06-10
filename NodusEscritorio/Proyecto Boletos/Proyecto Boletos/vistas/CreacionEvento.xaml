@@ -1,0 +1,326 @@
+﻿<Window
+  x:Class="Proyecto_Boletos.vistas.CreacionEvento"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d"
+  Loaded="Window_Loaded"
+  Title="Crear Evento"
+  Height="700"
+  Width="1100"
+  WindowStartupLocation="CenterScreen"
+  ResizeMode="CanResizeWithGrip"
+  Icon="/Logo_Nodus.png"
+  Background="{DynamicResource Color3}"
+>
+  <Window.Resources>
+    <Style TargetType="TextBlock" x:Key="LabelStyle">
+      <Setter Property="Margin" Value="0,6,0,3" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource Color4}" />
+    </Style>
+    <Style TargetType="TextBox" x:Key="InputStyle">
+      <Setter Property="Padding" Value="6,5" />
+      <Setter Property="BorderBrush" Value="#CCCCCC" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style TargetType="ComboBox" x:Key="ComboStyle">
+      <Setter Property="Padding" Value="6,5" />
+      <Setter Property="BorderBrush" Value="#CCCCCC" />
+    </Style>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="60" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="60" />
+    </Grid.RowDefinitions>
+
+    <!-- HEADER -->
+    <Border Background="{DynamicResource Color1}" Padding="20,0">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <TextBlock
+          Text="Crear Nuevo Evento"
+          FontSize="20"
+          FontWeight="Bold"
+          Foreground="White"
+          VerticalAlignment="Center"
+        />
+      </StackPanel>
+    </Border>
+
+    <!-- CONTENIDO CON SCROLL -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" Padding="20">
+      <StackPanel>
+        <!-- ── SECCIÓN 1: INFO BÁSICA ── -->
+        <Border
+          BorderBrush="{DynamicResource Color1}"
+          BorderThickness="1"
+          CornerRadius="6"
+          Padding="15"
+          Margin="0,0,0,15"
+        >
+          <StackPanel>
+            <TextBlock
+              Text="Información General"
+              FontSize="16"
+              FontWeight="Bold"
+              Foreground="{DynamicResource Color1}"
+              Margin="0,0,0,10"
+            />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <!-- Nombre -->
+              <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock Text="Nombre del Evento" Style="{StaticResource LabelStyle}" />
+                <TextBox x:Name="txtNombreEvento" Style="{StaticResource InputStyle}" />
+              </StackPanel>
+
+              <!-- Categoría -->
+              <StackPanel Grid.Row="0" Grid.Column="1" Margin="5,0,10,0">
+                <TextBlock Text="Categoría" Style="{StaticResource LabelStyle}" />
+                <ComboBox x:Name="cmbCategoria" Style="{StaticResource ComboStyle}">
+                  <ComboBoxItem Content="Concierto General" IsSelected="True" />
+                  <ComboBoxItem Content="Comida y Gastronomía" />
+                  <ComboBoxItem Content="Teatro y Artes Escénicas" />
+                  <ComboBoxItem Content="Deporte y Competición" />
+                  <ComboBoxItem Content="Conferencia / Seminario" />
+                  <ComboBoxItem Content="Festival de Música" />
+                  <ComboBoxItem Content="Stand-up Comedy" />
+                  <ComboBoxItem Content="Exposición de Arte" />
+                  <ComboBoxItem Content="Fiesta / Club / DJ" />
+                </ComboBox>
+              </StackPanel>
+
+              <!-- Nombre reservante -->
+              <StackPanel Grid.Row="0" Grid.Column="2" Margin="5,0,0,0">
+                <TextBlock Text="Nombre Reservante" Style="{StaticResource LabelStyle}" />
+                <TextBox x:Name="txtNombreReservante" Style="{StaticResource InputStyle}" />
+              </StackPanel>
+
+              <!-- Fecha inicio -->
+              <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock Text="Fecha Inicio" Style="{StaticResource LabelStyle}" />
+                <DatePicker
+                  x:Name="dpFechaInicio"
+                  Padding="5"
+                  SelectedDateChanged="Fecha_Changed"
+                />
+              </StackPanel>
+
+              <!-- Hora inicio -->
+              <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0,10,0">
+                <TextBlock Text="Hora Inicio (Ej: 18:30)" Style="{StaticResource LabelStyle}" />
+                <TextBox
+                  x:Name="txtHoraInicio"
+                  Style="{StaticResource InputStyle}"
+                  TextChanged="Fecha_TextChanged"
+                />
+              </StackPanel>
+
+              <!--  -->
+              <StackPanel Grid.Row="1" Grid.Column="2" Margin="5,0,0,0">
+                <TextBlock Text="Recinto" Style="{StaticResource LabelStyle}" />
+                <ComboBox
+                  x:Name="cmbRecinto"
+                  Style="{StaticResource ComboStyle}"
+                  DisplayMemberPath="NombreRecinto"
+                  SelectedValuePath="IdRecinto"
+                  SelectionChanged="cmbRecinto_SelectionChanged"
+                />
+              </StackPanel>
+
+              <!-- Fecha fin -->
+              <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock Text="Fecha Fin" Style="{StaticResource LabelStyle}" />
+                <DatePicker x:Name="dpFechaFin" Padding="5" SelectedDateChanged="Fecha_Changed" />
+              </StackPanel>
+
+              <!-- Hora fin -->
+              <StackPanel Grid.Row="2" Grid.Column="1" Margin="5,0,10,0">
+                <TextBlock Text="Hora Fin (Ej: 22:00)" Style="{StaticResource LabelStyle}" />
+                <TextBox
+                  x:Name="txtHoraFin"
+                  Style="{StaticResource InputStyle}"
+                  TextChanged="Fecha_TextChanged"
+                />
+              </StackPanel>
+
+              <!-- Disponibilidad -->
+              <StackPanel Grid.Row="2" Grid.Column="2" Margin="5,0,0,0" VerticalAlignment="Bottom">
+                <Border
+                  x:Name="bdDisponibilidad"
+                  CornerRadius="4"
+                  Padding="8,6"
+                  Background="#ECECEC"
+                  Margin="0,0,0,0"
+                >
+                  <TextBlock
+                    x:Name="txtDisponibilidad"
+                    Text="Selecciona recinto y fechas"
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                  />
+                </Border>
+              </StackPanel>
+            </Grid>
+
+            <!-- Imagen URL + Es Público -->
+            <Grid Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock Text="URL de Imagen del Evento" Style="{StaticResource LabelStyle}" />
+                <TextBox x:Name="txtImagenUrl" Style="{StaticResource InputStyle}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="5,0,0,0">
+                <CheckBox
+                  x:Name="chkEsPublico"
+                  Content="Evento Público"
+                  FontWeight="SemiBold"
+                  Foreground="{DynamicResource Color1}"
+                  IsChecked="True"
+                  Margin="0,0,0,8"
+                  Checked="chkEsPublico_Changed"
+                  Unchecked="chkEsPublico_Changed"
+                />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- ── SECCIÓN 2: SERVICIOS ── -->
+        <Border
+          BorderBrush="{DynamicResource Color1}"
+          BorderThickness="1"
+          CornerRadius="6"
+          Padding="15"
+          Margin="0,0,0,15"
+        >
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock
+                Text="Servicios"
+                FontSize="16"
+                FontWeight="Bold"
+                Foreground="{DynamicResource Color1}"
+                VerticalAlignment="Center"
+              />
+              <Button
+                Grid.Column="1"
+                Content="+ Agregar Servicio"
+                x:Name="btnAgregarServicio"
+                Height="32"
+                Padding="12,0"
+                Background="{DynamicResource Color1}"
+                Foreground="White"
+                BorderBrush="{DynamicResource Color1}"
+                Click="btnAgregarServicio_Click"
+              />
+            </Grid>
+            <StackPanel x:Name="panelServicios" Margin="0,10,0,0" />
+          </StackPanel>
+        </Border>
+
+        <!-- ── SECCIÓN 3: TIPOS DE BOLETO (solo si es público) ── -->
+        <Border
+          x:Name="seccionBoletos"
+          BorderBrush="{DynamicResource Color1}"
+          BorderThickness="1"
+          CornerRadius="6"
+          Padding="15"
+          Margin="0,0,0,15"
+        >
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock
+                Text="Tipos de Boleto"
+                FontSize="16"
+                FontWeight="Bold"
+                Foreground="{DynamicResource Color1}"
+                VerticalAlignment="Center"
+              />
+              <Button
+                Grid.Column="1"
+                Content="+ Agregar Tipo de Boleto"
+                x:Name="btnAgregarBoleto"
+                Height="32"
+                Padding="12,0"
+                Background="{DynamicResource Color1}"
+                Foreground="White"
+                BorderBrush="{DynamicResource Color1}"
+                Click="btnAgregarBoleto_Click"
+              />
+            </Grid>
+            <StackPanel x:Name="panelBoletos" Margin="0,10,0,0" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- FOOTER BOTONES -->
+    <Border Grid.Row="2" BorderBrush="#EEEEEE" BorderThickness="0,1,0,0" Padding="20,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock
+          x:Name="txtEstadoGuardado"
+          Grid.Column="0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          FontSize="12"
+        />
+        <Button
+          Grid.Column="1"
+          Content="Cancelar"
+          x:Name="btnCancelar"
+          Width="100"
+          Height="36"
+          Margin="5,0"
+          Background="{DynamicResource Color2}"
+          Foreground="White"
+          BorderBrush="{DynamicResource Color2}"
+          Click="btnCancelar_Click"
+        />
+        <Button
+          Grid.Column="2"
+          Content="Guardar Evento"
+          x:Name="btnGuardar"
+          Width="130"
+          Height="36"
+          Margin="5,0"
+          Background="{DynamicResource Color1}"
+          Foreground="White"
+          BorderBrush="{DynamicResource Color1}"
+          Click="btnGuardar_Click"
+        />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

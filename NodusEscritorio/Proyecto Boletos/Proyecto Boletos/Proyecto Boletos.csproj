@@ -148,9 +148,11 @@
     <Compile Include="Db\Departamento.cs" />
     <Compile Include="Db\DetalleOrden.cs" />
     <Compile Include="Db\Evento.cs" />
+    <Compile Include="Db\EventoServicio.cs" />
     <Compile Include="Db\FechaEvento.cs" />
     <Compile Include="Db\Gasto.cs" />
     <Compile Include="Db\Invitado.cs" />
+    <Compile Include="Db\Media.cs" />
     <Compile Include="Db\MetodoPago.cs" />
     <Compile Include="Db\Notificacion.cs" />
     <Compile Include="Db\Orden.cs" />
@@ -162,6 +164,7 @@
     <Compile Include="Db\Reserva.cs" />
     <Compile Include="Db\Rol.cs" />
     <Compile Include="Db\Servicio.cs" />
+    <Compile Include="Db\TipoBoleto.cs" />
     <Compile Include="Db\Usuario.cs" />
     <Compile Include="Tema.cs" />
     <Compile Include="vistas\CarritoView.xaml.cs">
@@ -170,11 +173,17 @@
     <Compile Include="vistas\Configuracion.xaml.cs">
       <DependentUpon>Configuracion.xaml</DependentUpon>
     </Compile>
+    <Compile Include="vistas\CreacionEvento.xaml.cs">
+      <DependentUpon>CreacionEvento.xaml</DependentUpon>
+    </Compile>
     <Compile Include="vistas\DashboardView.xaml.cs">
       <DependentUpon>DashboardView.xaml</DependentUpon>
     </Compile>
     <Compile Include="vistas\EventosView.xaml.cs">
       <DependentUpon>EventosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="vistas\PagoEventoDialog.xaml.cs">
+      <DependentUpon>PagoEventoDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="vistas\ProveedoresView.xaml.cs">
       <DependentUpon>ProveedoresView.xaml</DependentUpon>
@@ -211,11 +220,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="vistas\CreacionEvento.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="vistas\DashboardView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="vistas\EventosView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="vistas\PagoEventoDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

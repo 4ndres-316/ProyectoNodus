@@ -13,7 +13,6 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
-      <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
     <!-- TÍTULO -->
@@ -190,172 +189,6 @@
       </Grid>
     </Border>
 
-    <!-- FORMULARIO (oculto por defecto) -->
-    <Border
-      x:Name="pnlFormulario"
-      Grid.Row="2"
-      BorderBrush="{DynamicResource Color1}"
-      BorderThickness="1"
-      CornerRadius="5"
-      Padding="15"
-      Background="{DynamicResource Color3}"
-      Visibility="Collapsed"
-    >
-      <Grid>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <!-- CAMPOS -->
-        <Grid Grid.Row="0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-          </Grid.RowDefinitions>
-
-          <!-- FILA 1 -->
-          <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
-            <TextBlock Text="Nombre del Evento:" Margin="0,5" Foreground="White" />
-            <TextBox x:Name="txtNombreEvento" Padding="5" Margin="0,0,0,10" />
-          </StackPanel>
-
-          <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,10,0">
-            <TextBlock Text="Fecha:" Margin="0,5" Foreground="White" />
-            <DatePicker x:Name="dpFechaEvento" Padding="5" Margin="0,0,0,10" />
-          </StackPanel>
-
-          <StackPanel Grid.Row="0" Grid.Column="2" Margin="10,0,0,0">
-            <TextBlock Text="Hora (Ej. 18:30):" Margin="0,5" Foreground="White" />
-            <TextBox x:Name="txtHoraEvento" Padding="5" Margin="0,0,0,10" />
-          </StackPanel>
-
-          <!-- FILA 2 -->
-          <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
-            <TextBlock Text="Tipo de Evento:" Margin="0,5" Foreground="White" />
-            <ComboBox x:Name="cmbTipoEvento" Padding="5" Margin="0,0,0,10">
-              <ComboBoxItem Content="Concierto General" IsSelected="True" />
-              <ComboBoxItem Content="Comida y Gastronomía" />
-              <ComboBoxItem Content="Teatro y Artes Escénicas" />
-              <ComboBoxItem Content="Deporte y Competición" />
-              <ComboBoxItem Content="Conferencia / Seminario" />
-              <ComboBoxItem Content="Taller / Curso Educativo" />
-              <ComboBoxItem Content="Festival de Música" />
-              <ComboBoxItem Content="Stand-up Comedy" />
-              <ComboBoxItem Content="Exposición de Arte" />
-              <ComboBoxItem Content="Fiesta / Club / DJ" />
-            </ComboBox>
-          </StackPanel>
-
-          <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,10,0">
-            <TextBlock Text="Recinto:" Margin="0,5" Foreground="White" />
-            <ComboBox
-              x:Name="cmbRecinto"
-              Padding="5"
-              Margin="0,0,0,10"
-              DisplayMemberPath="NombreRecinto"
-              SelectedValuePath="IdRecinto"
-              SelectionChanged="cmbRecinto_SelectionChanged"
-            />
-          </StackPanel>
-
-          <StackPanel Grid.Row="1" Grid.Column="2" Margin="10,0,0,0">
-            <TextBlock Text="Capacidad del Recinto:" Margin="0,5" Foreground="White" />
-            <TextBox
-              x:Name="txtCapacidad"
-              Padding="5"
-              Margin="0,0,0,10"
-              IsEnabled="False"
-              Background="#ECECEC"
-              ToolTip="Se llena automáticamente al elegir el recinto"
-            />
-          </StackPanel>
-
-          <!-- FILA 3 -->
-          <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0">
-            <TextBlock Text="Estado:" Margin="0,5" Foreground="White" />
-            <ComboBox x:Name="cmbEstadoEvento" Padding="5" Margin="0,0,0,10">
-              <ComboBoxItem Content="Programado" IsSelected="True" />
-              <ComboBoxItem Content="Cancelado" />
-              <ComboBoxItem Content="Finalizado" />
-            </ComboBox>
-          </StackPanel>
-
-          <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,10,0">
-            <TextBlock Text="Tipo de Acceso:" Margin="0,5" Foreground="White" />
-            <ComboBox x:Name="cmbTipoAcceso" Padding="5" Margin="0,0,0,10">
-              <ComboBoxItem Content="Ticket" IsSelected="True" />
-              <ComboBoxItem Content="Invitación" />
-            </ComboBox>
-          </StackPanel>
-        </Grid>
-
-        <!-- BOTONES FORMULARIO -->
-        <StackPanel
-          Grid.Row="1"
-          Orientation="Horizontal"
-          HorizontalAlignment="Right"
-          Margin="0,10,0,0"
-        >
-          <Button
-            x:Name="btnGuardar"
-            Content="Guardar"
-            Width="100"
-            Height="35"
-            Margin="5"
-            Background="{DynamicResource Color1}"
-            Foreground="White"
-            BorderBrush="{DynamicResource Color1}"
-            Click="btnGuardar_Click"
-          />
-
-          <Button
-            x:Name="btnEditar"
-            Content="Editar"
-            Width="100"
-            Height="35"
-            Margin="5"
-            Background="{DynamicResource Color2}"
-            Foreground="White"
-            BorderBrush="{DynamicResource Color2}"
-            IsEnabled="False"
-            Click="btnEditar_Click"
-          />
-
-          <Button
-            x:Name="btnEliminar"
-            Content="Eliminar"
-            Width="100"
-            Height="35"
-            Margin="5"
-            Background="#F44336"
-            Foreground="White"
-            BorderBrush="#F44336"
-            IsEnabled="False"
-            Click="btnEliminar_Click"
-          />
-
-          <Button
-            x:Name="btnCancelar"
-            Content="Cancelar"
-            Width="100"
-            Height="35"
-            Margin="5"
-            Background="{DynamicResource Color2}"
-            Foreground="White"
-            BorderBrush="{DynamicResource Color2}"
-            Click="btnCancelar_Click"
-          />
-        </StackPanel>
-      </Grid>
-    </Border>
-
     <!-- POPUP EVENTOS DEL DÍA -->
     <Popup
       x:Name="popupEventosDia"
@@ -364,8 +197,8 @@
       PopupAnimation="Fade"
     >
       <Border
-        Background="White"
-        BorderBrush="#2E7D5A"
+        Background="{DynamicResource Color2}"
+        BorderBrush="{DynamicResource Color3}"
         BorderThickness="1"
         CornerRadius="5"
         Padding="10"
@@ -378,7 +211,7 @@
             x:Name="txtPopupFecha"
             FontWeight="Bold"
             FontSize="14"
-            Foreground="#2E7D5A"
+            Foreground="{DynamicResource Color1}"
             Margin="0,0,0,8"
           />
           <ItemsControl x:Name="lstPopupEventos">
@@ -387,20 +220,45 @@
                 <Border Background="#E8F5EE" CornerRadius="3" Padding="8,5" Margin="0,3">
                   <StackPanel>
                     <TextBlock Text="{Binding NombreEvento}" FontWeight="SemiBold" FontSize="13" />
+
                     <TextBlock FontSize="12" Foreground="#555">
-                      <Run Text="{Binding HoraEvento, StringFormat=hh\\:mm}" />
+                      <Run Text="{Binding HoraEvento,StringFormat=hh\\:mm}" />
                       <Run Text=" → " />
-                      <Run Text="{Binding HoraFin, StringFormat=hh\\:mm}" />
+                      <Run Text="{Binding HoraFin,StringFormat=hh\\:mm}" />
                       <Run Text=" — " />
                       <Run Text="{Binding NombreRecinto}" />
                     </TextBlock>
-                    <!-- Si el evento abarca varios días, mostrar rango de fechas -->
+
                     <TextBlock FontSize="11" Foreground="#888">
-                      <Run Text="{Binding FechaEvento, StringFormat=dd/MM/yyyy}" />
+                      <Run Text="{Binding FechaEvento,StringFormat=dd/MM/yyyy}" />
                       <Run Text=" → " />
-                      <Run Text="{Binding FechaFin, StringFormat=dd/MM/yyyy}" />
+                      <Run Text="{Binding FechaFin,StringFormat=dd/MM/yyyy}" />
                     </TextBlock>
+
                     <TextBlock Text="{Binding Categoria}" FontSize="11" Foreground="#888" />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                      <Button
+                        Content="Reprogramar"
+                        Height="26"
+                        Margin="0 3 3 0"
+                        Padding="5 0"
+                        Background="{DynamicResource Color1}"
+                        Foreground="White"
+                        BorderBrush="{DynamicResource Color1}"
+                        Tag="{Binding}"
+                      />
+                      <Button
+                        Content="Cancelar"
+                        Height="26"
+                        Margin="3 3 0 0"
+                        Padding="10 0"
+                        Background="#F44336"
+                        Foreground="White"
+                        BorderBrush="#F44336"
+                        Tag="{Binding}"
+                      />
+                    </StackPanel>
                   </StackPanel>
                 </Border>
               </DataTemplate>
@@ -410,7 +268,7 @@
             x:Name="txtSinEventos"
             Text="Sin eventos para este día"
             FontSize="12"
-            Foreground="#888"
+            Foreground="{DynamicResource Color4}"
             HorizontalAlignment="Center"
             Margin="0,5"
             Visibility="Collapsed"

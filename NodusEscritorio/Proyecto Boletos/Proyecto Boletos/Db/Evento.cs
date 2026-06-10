@@ -20,6 +20,9 @@ namespace Proyecto_Boletos.Db
         [Column("id_recinto")]
         public int IdRecinto { get; set; }
 
+        [Column("fecha")]
+        public int IdFechaEvento { get; set; }
+
         [Column("nombre_evento")]
         public string NombreEvento { get; set; } = string.Empty;
 
@@ -32,14 +35,8 @@ namespace Proyecto_Boletos.Db
         [Column("nombre_reservante")]
         public string NombreReservante { get; set; } = string.Empty;
 
-        [Column("id_servicio")]
-        public int? IdServicio { get; set; }
-
         [Column("esPublico")]
-        public string EsPublico { get; set; } = string.Empty;
-
-        [Column("fecha")]
-        public int IdFechaEvento { get; set; }
+        public bool EsPublico { get; set; } = true;
 
         [Column("imagen_url")]
         public string ImagenUrl { get; set; } = string.Empty;

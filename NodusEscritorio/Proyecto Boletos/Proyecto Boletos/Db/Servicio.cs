@@ -17,9 +17,6 @@ namespace Proyecto_Boletos.Db
         [Column("nombre_servicio")]
         public string NombreServicio { get; set; } = string.Empty;
 
-        [Column("precio")]
-        public decimal Precio { get; set; }
-
         [Column("categoria")]
         public string Categoria { get; set; } = string.Empty;
 

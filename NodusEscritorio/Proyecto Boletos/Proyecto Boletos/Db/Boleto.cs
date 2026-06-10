@@ -17,6 +17,9 @@ namespace Proyecto_Boletos.Db
         [Column("id_evento")]
         public int IdEvento { get; set; }
 
+        [Column("id_orden")]
+        public int IdOrden { get; set; }
+
         [Column("codigo")]
         public string Codigo { get; set; } = string.Empty;
 

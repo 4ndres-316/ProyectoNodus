@@ -30,6 +30,9 @@ namespace Proyecto_Boletos.Db
         [Column("estado_usuario")]
         public string EstadoUsuario { get; set; } = string.Empty;
 
+        [Column("foto_rostro")]
+        public string FotoRostro { get; set; } = string.Empty;
+
         public Rol Rol { get; set; }
     }
 }

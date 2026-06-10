@@ -16,8 +16,6 @@ namespace Proyecto_Boletos.vistas
         private List<Evento> _eventos;
         private List<Recinto> _recintos;
         private List<FechaEvento> _fechasEventos;
-        private Evento _eventoSeleccionado;
-        private bool _modoEdicion = false;
         private int _idUsuario;
         private DateTime _mesActual = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
@@ -43,7 +41,6 @@ namespace Proyecto_Boletos.vistas
             {
                 var response = await ConexionDB.Client.From<Recinto>().Get();
                 _recintos = response.Models;
-                cmbRecinto.ItemsSource = _recintos;
             }
             catch (Exception ex)
             {
@@ -224,6 +221,8 @@ namespace Proyecto_Boletos.vistas
             {
                 if (!esHoy)
                     celda.Background = new SolidColorBrush(Color.FromRgb(245, 250, 248));
+
+                MostrarPopupEventos(fecha, eventos, celda);
             };
 
             celda.MouseLeave += (s, e) =>
@@ -322,252 +321,56 @@ namespace Proyecto_Boletos.vistas
 
         private void btnAgregarEvento_Click(object sender, RoutedEventArgs e)
         {
-            LimpiarFormulario();
-            pnlFormulario.Visibility = Visibility.Visible;
-            _modoEdicion = false;
-            btnEditar.IsEnabled = false;
-            btnEliminar.IsEnabled = false;
-        }
+            var ventana = new CreacionEvento(_idUsuario, "nombre_del_usuario");
+            ventana.Owner = Window.GetWindow(this);
+            ventana.ShowDialog();
 
-        // ─── FORMULARIO ───
-
-        private void cmbRecinto_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (cmbRecinto.SelectedItem is Recinto recintoElegido)
-                txtCapacidad.Text = recintoElegido.Capacidad.ToString();
-            else
-                txtCapacidad.Text = string.Empty;
-        }
-
-        private async void btnGuardar_Click(object sender, RoutedEventArgs e)
-        {
-            if (
-                string.IsNullOrWhiteSpace(txtNombreEvento.Text)
-                || dpFechaEvento.SelectedDate == null
-            )
+            // Recargar al volver — en el dispatcher para no mezclar threads
+            Dispatcher.InvokeAsync(async () =>
             {
-                MessageBox.Show(
-                    "El nombre y la fecha son obligatorios.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
-
-            if (!TimeSpan.TryParse(txtHoraEvento.Text, out TimeSpan horaValida))
-            {
-                MessageBox.Show(
-                    "Escribe una hora válida (ejemplo: 18:30).",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
-
-            if (cmbRecinto.SelectedValue == null)
-            {
-                MessageBox.Show(
-                    "Debe seleccionar un recinto.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
-
-            int idRecinto = (int)cmbRecinto.SelectedValue;
-
-            try
-            {
-                if (_modoEdicion)
-                {
-                    var fechaEvento =
-                        _fechasEventos?.Find(f => f.Id == _eventoSeleccionado.IdFechaEvento)
-                        ?? new FechaEvento();
-
-                    fechaEvento.FechaInicio = dpFechaEvento.SelectedDate.Value;
-                    fechaEvento.FechaFin = dpFechaEvento.SelectedDate.Value;
-                    fechaEvento.HoraInicio = horaValida;
-                    fechaEvento.HoraFin = horaValida;
-
-                    await ConexionDB.Client.From<FechaEvento>().Update(fechaEvento);
-
-                    _eventoSeleccionado.NombreEvento = txtNombreEvento.Text.Trim();
-                    _eventoSeleccionado.IdRecinto = idRecinto;
-                    _eventoSeleccionado.Categoria = (
-                        (ComboBoxItem)cmbTipoEvento.SelectedItem
-                    ).Content.ToString();
-                    _eventoSeleccionado.EstadoEvento = (
-                        (ComboBoxItem)cmbEstadoEvento.SelectedItem
-                    ).Content.ToString();
-
-                    await ConexionDB.Client.From<Evento>().Update(_eventoSeleccionado);
-                }
-                else
-                {
-                    var fechaEvento = new FechaEvento
-                    {
-                        FechaInicio = dpFechaEvento.SelectedDate.Value,
-                        FechaFin = dpFechaEvento.SelectedDate.Value,
-                        HoraInicio = horaValida,
-                        HoraFin = horaValida,
-                    };
-
-                    var fechaResponse = await ConexionDB
-                        .Client.From<FechaEvento>()
-                        .Insert(fechaEvento);
-                    var fechaInsertada = fechaResponse.Models.First();
-
-                    var nuevoEvento = new Evento
-                    {
-                        NombreEvento = txtNombreEvento.Text.Trim(),
-                        IdRecinto = idRecinto,
-                        IdOrganizador = _idUsuario,
-                        Categoria = ((ComboBoxItem)cmbTipoEvento.SelectedItem).Content.ToString(),
-                        EstadoEvento = (
-                            (ComboBoxItem)cmbEstadoEvento.SelectedItem
-                        ).Content.ToString(),
-                        IdFechaEvento = fechaInsertada.Id,
-                        EsPublico = "true",
-                    };
-
-                    await ConexionDB.Client.From<Evento>().Insert(nuevoEvento);
-                }
-
                 await CargarFechasEventos();
                 await CargarEventos();
-                LimpiarFormulario();
-                pnlFormulario.Visibility = Visibility.Collapsed;
+            });
+        }
 
-                MessageBox.Show(
-                    "Evento guardado exitosamente",
-                    "Éxito",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
-            }
-            catch (Exception ex)
+        /*private async void BtnCancelar_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn &&
+                btn.Tag is Evento evento)
             {
-                MessageBox.Show(
-                    $"Error al guardar evento: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                var resultado = MessageBox.Show(
+                    $"¿Cancelar '{evento.NombreEvento}'?",
+                    "Confirmar",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (resultado != MessageBoxResult.Yes)
+                    return;
+
+                evento.EstadoEvento = "Cancelado";
+
+                await SupabaseService.Client
+                    .From<Evento>()
+                    .Update(evento);
+
+                CargarEventos();
             }
         }
 
-        private void btnEditar_Click(object sender, RoutedEventArgs e)
+        private void BtnReprogramar_Click(object sender, RoutedEventArgs e)
         {
-            if (_eventoSeleccionado == null)
-                return;
-
-            var fechaEvento = _fechasEventos?.Find(f => f.Id == _eventoSeleccionado.IdFechaEvento);
-
-            txtNombreEvento.Text = _eventoSeleccionado.NombreEvento;
-            dpFechaEvento.SelectedDate = fechaEvento?.FechaInicio ?? DateTime.Now;
-            txtHoraEvento.Text =
-                fechaEvento != null ? fechaEvento.HoraInicio.ToString(@"hh\:mm") : string.Empty;
-            cmbRecinto.SelectedValue = _eventoSeleccionado.IdRecinto;
-
-            foreach (ComboBoxItem item in cmbTipoEvento.Items)
-                if (item.Content.ToString() == _eventoSeleccionado.Categoria)
-                {
-                    cmbTipoEvento.SelectedItem = item;
-                    break;
-                }
-
-            foreach (ComboBoxItem item in cmbEstadoEvento.Items)
-                if (item.Content.ToString() == _eventoSeleccionado.EstadoEvento)
-                {
-                    cmbEstadoEvento.SelectedItem = item;
-                    break;
-                }
-
-            _modoEdicion = true;
-            pnlFormulario.Visibility = Visibility.Visible;
-        }
-
-        private async void btnEliminar_Click(object sender, RoutedEventArgs e)
-        {
-            if (_eventoSeleccionado == null)
-                return;
-
-            var resultado = MessageBox.Show(
-                $"¿Estás seguro de eliminar el evento '{_eventoSeleccionado.NombreEvento}'?",
-                "Confirmar",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
-
-            if (resultado == MessageBoxResult.Yes)
+            if (sender is Button btn &&
+                btn.Tag is Evento evento)
             {
-                try
-                {
-                    int idFecha = _eventoSeleccionado.IdFechaEvento;
+                evento.EstadoEvento = "Reprogramado";
 
-                    await ConexionDB
-                        .Client.From<Evento>()
-                        .Where(x => x.IdEvento == _eventoSeleccionado.IdEvento)
-                        .Delete();
+                var ventana = new vistas.CreacionEvento(evento);
 
-                    bool fechaUsadaOtraVez = _eventos.Any(ev =>
-                        ev.IdEvento != _eventoSeleccionado.IdEvento && ev.IdFechaEvento == idFecha
-                    );
+                ventana.ShowDialog();
 
-                    if (!fechaUsadaOtraVez)
-                    {
-                        await ConexionDB
-                            .Client.From<FechaEvento>()
-                            .Where(f => f.Id == idFecha)
-                            .Delete();
-                    }
-
-                    await CargarFechasEventos();
-                    await CargarEventos();
-                    LimpiarFormulario();
-                    pnlFormulario.Visibility = Visibility.Collapsed;
-
-                    MessageBox.Show(
-                        "Evento eliminado",
-                        "Éxito",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(
-                        $"Error: {ex.Message}",
-                        "Error",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                }
+                CargarEventos();
             }
-        }
-
-        private void btnCancelar_Click(object sender, RoutedEventArgs e)
-        {
-            LimpiarFormulario();
-            pnlFormulario.Visibility = Visibility.Collapsed;
-            _eventoSeleccionado = null;
-            _modoEdicion = false;
-        }
-
-        private void LimpiarFormulario()
-        {
-            txtNombreEvento.Clear();
-            dpFechaEvento.SelectedDate = DateTime.Now;
-            txtHoraEvento.Clear();
-            txtCapacidad.Clear();
-            cmbRecinto.SelectedIndex = -1;
-            cmbTipoEvento.SelectedIndex = 0;
-            cmbEstadoEvento.SelectedIndex = 0;
-            cmbTipoAcceso.SelectedIndex = 0;
-        }
+        }*/
     }
 
     public class EventoVista

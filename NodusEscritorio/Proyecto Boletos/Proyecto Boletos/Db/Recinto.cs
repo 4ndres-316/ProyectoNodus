@@ -35,6 +35,9 @@ namespace Proyecto_Boletos.Db
         [Column("estado_recinto")]
         public string EstadoRecinto { get; set; } = string.Empty;
 
+        [Column("link_ubicacion")]
+        public string LinkUbicacion { get; set; } = string.Empty;
+
         public string NombreCiudad { get; set; } = string.Empty;
     }
 }

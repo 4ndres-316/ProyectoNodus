@@ -11,7 +11,7 @@ namespace Proyecto_Boletos.Db
     [Table("proveedor")]
     public class Proveedor : BaseModel
     {
-        [PrimaryKey("nit_proveedor", shouldInsert: true)]
+        [PrimaryKey("nit_proveedor")]
         public string NitProveedor { get; set; } = string.Empty;
 
         [Column("id_ciudad")]
@@ -25,5 +25,8 @@ namespace Proyecto_Boletos.Db
 
         [Column("estado_proveedor")]
         public string EstadoProveedor { get; set; } = string.Empty;
+
+        [Column("precio")]
+        public int Precio { get; set; }
     }
 }

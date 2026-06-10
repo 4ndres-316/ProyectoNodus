@@ -66,13 +66,13 @@ namespace Proyecto_Boletos.vistas
 
                 // 3. TOTAL EVENTOS ACTIVOS
                 txtTotalEventos.Text = eventosConFecha
-                    .Count(x => x.Evento.EstadoEvento == "Activo")
+                    .Count(x => x.Evento.EstadoEvento == "Programado")
                     .ToString();
 
                 // 4. PRÓXIMOS EVENTOS
                 var proximosEventos = eventosConFecha
                     .Where(x =>
-                        x.Evento.EstadoEvento == "Activo"
+                        x.Evento.EstadoEvento == "Programado"
                         && x.FechaEvento.FechaInicio.Date >= DateTime.Today
                     )
                     .OrderBy(x => x.FechaEvento.FechaInicio)

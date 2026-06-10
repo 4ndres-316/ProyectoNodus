@@ -28,5 +28,8 @@ namespace Proyecto_Boletos.Db
 
         [Column("descuento")]
         public decimal Descuento { get; set; }
+
+        [Column("id_tipo_boleto")]
+        public int IdTipoBoleto { get; set; }
     }
 }
