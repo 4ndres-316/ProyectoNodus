@@ -221,8 +221,6 @@ namespace Proyecto_Boletos.vistas
             {
                 if (!esHoy)
                     celda.Background = new SolidColorBrush(Color.FromRgb(245, 250, 248));
-
-                MostrarPopupEventos(fecha, eventos, celda);
             };
 
             celda.MouseLeave += (s, e) =>

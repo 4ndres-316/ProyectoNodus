@@ -16,6 +16,7 @@ namespace Proyecto_Boletos.vistas
         private string _nombreUsuario;
         private List<Recinto> _recintos;
         private List<Servicio> _servicios;
+        private List<Categoria> _categorias;
         private List<Proveedor> _proveedores;
         private List<ProveedorServicio> _proveedorServicios;
         private List<MetodoPago> _metodosPago;
@@ -44,78 +45,73 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error al cargar recintos: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Error al cargar recintos: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             try
             {
+                _categorias = (await ConexionDB.Client.From<Categoria>().Get()).Models;
                 _servicios = (await ConexionDB.Client.From<Servicio>().Get()).Models;
-                _proveedores = (await ConexionDB.Client.From<Proveedor>().Get()).Models;
-                _proveedorServicios = (
-                    await ConexionDB.Client.From<ProveedorServicio>().Get()
-                ).Models;
+
+                // Cruzar nombre de categoría en cada servicio
+                foreach (var s in _servicios)
+                {
+                    var cat = _categorias.Find(c => c.IdCategoria == s.IdCategoria);
+                    s.NombreCategoria = cat?.NombreCategoria ?? s.IdCategoria.ToString();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error al cargar servicios/proveedores: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Error al cargar servicios: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             try
             {
-                _metodosPago = (
-                    await ConexionDB
-                        .Client.From<MetodoPago>()
-                        .Filter("estado", Supabase.Postgrest.Constants.Operator.Equals, "activo")
-                        .Get()
-                ).Models;
+                _proveedores = (await ConexionDB.Client.From<Proveedor>().Get()).Models;
+                _proveedorServicios = (await ConexionDB.Client.From<ProveedorServicio>().Get()).Models;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar proveedores: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
-                // Si no hay métodos con estado "activo", cargar todos
+            try
+            {
+                _metodosPago = (await ConexionDB.Client.From<MetodoPago>()
+                    .Filter("estado", Supabase.Postgrest.Constants.Operator.Equals, "activo")
+                    .Get()).Models;
+
                 if (_metodosPago == null || _metodosPago.Count == 0)
                     _metodosPago = (await ConexionDB.Client.From<MetodoPago>().Get()).Models;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error al cargar métodos de pago: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Error al cargar métodos de pago: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         // ─── DISPONIBILIDAD ──────────────────────────────────────────────────
 
-        private async void cmbRecinto_SelectionChanged(
-            object sender,
-            SelectionChangedEventArgs e
-        ) => await VerificarDisponibilidad();
+        private async void cmbRecinto_SelectionChanged(object sender, SelectionChangedEventArgs e)
+            => await VerificarDisponibilidad();
 
-        private async void Fecha_Changed(object sender, SelectionChangedEventArgs e) =>
-            await VerificarDisponibilidad();
+        private async void Fecha_Changed(object sender, SelectionChangedEventArgs e)
+            => await VerificarDisponibilidad();
 
-        private async void Fecha_TextChanged(object sender, TextChangedEventArgs e) =>
-            await VerificarDisponibilidad();
+        private async void Fecha_TextChanged(object sender, TextChangedEventArgs e)
+            => await VerificarDisponibilidad();
 
         private async Task VerificarDisponibilidad()
         {
-            if (
-                cmbRecinto.SelectedValue == null
-                || dpFechaInicio.SelectedDate == null
-                || dpFechaFin.SelectedDate == null
-                || !TimeSpan.TryParse(txtHoraInicio.Text, out TimeSpan horaInicio)
-                || !TimeSpan.TryParse(txtHoraFin.Text, out TimeSpan horaFin)
-            )
+            if (cmbRecinto.SelectedValue == null ||
+                dpFechaInicio.SelectedDate == null ||
+                dpFechaFin.SelectedDate == null ||
+                !TimeSpan.TryParse(txtHoraInicio.Text, out TimeSpan horaInicio) ||
+                !TimeSpan.TryParse(txtHoraFin.Text, out TimeSpan horaFin))
             {
                 txtDisponibilidad.Text = "Selecciona recinto y fechas";
                 bdDisponibilidad.Background = new SolidColorBrush(Color.FromRgb(236, 236, 236));
@@ -137,21 +133,13 @@ namespace Proyecto_Boletos.vistas
 
             try
             {
-                var eventosRecinto = (
-                    await ConexionDB
-                        .Client.From<Evento>()
-                        .Filter(
-                            "id_recinto",
-                            Supabase.Postgrest.Constants.Operator.Equals,
-                            idRecinto.ToString()
-                        )
-                        .Get()
-                ).Models;
+                var eventosRecinto = (await ConexionDB.Client.From<Evento>()
+                    .Filter("id_recinto", Supabase.Postgrest.Constants.Operator.Equals, idRecinto.ToString())
+                    .Get()).Models;
 
                 var fechasIds = eventosRecinto.Select(ev => ev.IdFechaEvento).Distinct().ToList();
-                var fechas = (await ConexionDB.Client.From<FechaEvento>().Get())
-                    .Models.Where(f => fechasIds.Contains(f.Id))
-                    .ToList();
+                var fechas = (await ConexionDB.Client.From<FechaEvento>().Get()).Models
+                                .Where(f => fechasIds.Contains(f.Id)).ToList();
 
                 bool ocupado = fechas.Any(f =>
                 {
@@ -180,11 +168,10 @@ namespace Proyecto_Boletos.vistas
 
         private void chkEsPublico_Changed(object sender, RoutedEventArgs e)
         {
-            if (seccionBoletos == null)
-                return;
-
-            seccionBoletos.Visibility =
-                chkEsPublico.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+            if (seccionBoletos == null) return;
+            seccionBoletos.Visibility = chkEsPublico.IsChecked == true
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         // ─── SERVICIOS DINÁMICOS ─────────────────────────────────────────────
@@ -193,12 +180,8 @@ namespace Proyecto_Boletos.vistas
         {
             if (_servicios == null || _proveedores == null || _proveedorServicios == null)
             {
-                MessageBox.Show(
-                    "Los datos aún están cargando, espera un momento.",
-                    "Aviso",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                MessageBox.Show("Los datos aún están cargando, espera un momento.", "Aviso",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -231,69 +214,26 @@ namespace Proyecto_Boletos.vistas
         private async void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtNombreEvento.Text))
-            {
-                MessageBox.Show(
-                    "El nombre del evento es obligatorio.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
+            { MessageBox.Show("El nombre del evento es obligatorio.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
 
             if (cmbRecinto.SelectedValue == null)
-            {
-                MessageBox.Show(
-                    "Selecciona un recinto.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
+            { MessageBox.Show("Selecciona un recinto.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
 
             if (dpFechaInicio.SelectedDate == null || dpFechaFin.SelectedDate == null)
-            {
-                MessageBox.Show(
-                    "Las fechas son obligatorias.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
+            { MessageBox.Show("Las fechas son obligatorias.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
 
-            if (
-                !TimeSpan.TryParse(txtHoraInicio.Text, out TimeSpan horaInicio)
-                || !TimeSpan.TryParse(txtHoraFin.Text, out TimeSpan horaFin)
-            )
-            {
-                MessageBox.Show(
-                    "Escribe horas válidas (Ej: 18:30).",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
+            if (!TimeSpan.TryParse(txtHoraInicio.Text, out TimeSpan horaInicio) ||
+                !TimeSpan.TryParse(txtHoraFin.Text, out TimeSpan horaFin))
+            { MessageBox.Show("Escribe horas válidas (Ej: 18:30).", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
 
             if (string.IsNullOrWhiteSpace(txtNombreReservante.Text))
-            {
-                MessageBox.Show(
-                    "El nombre reservante es obligatorio.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
+            { MessageBox.Show("El nombre reservante es obligatorio.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
 
             var ventanaPago = new PagoEventoDialog(_metodosPago);
             ventanaPago.Owner = this;
             ventanaPago.ShowDialog();
 
-            if (ventanaPago.Resultado == ResultadoPago.Cancelado)
-                return;
+            if (ventanaPago.Resultado == ResultadoPago.Cancelado) return;
 
             btnGuardar.IsEnabled = false;
             txtEstadoGuardado.Text = "Guardando...";
@@ -306,7 +246,7 @@ namespace Proyecto_Boletos.vistas
                     FechaInicio = dpFechaInicio.SelectedDate.Value,
                     FechaFin = dpFechaFin.SelectedDate.Value,
                     HoraInicio = horaInicio,
-                    HoraFin = horaFin,
+                    HoraFin = horaFin
                 };
                 var fechaResp = await ConexionDB.Client.From<FechaEvento>().Insert(fechaEvento);
                 var fechaInserta = fechaResp.Models.First();
@@ -322,7 +262,7 @@ namespace Proyecto_Boletos.vistas
                     EstadoEvento = "Programado",
                     NombreReservante = txtNombreReservante.Text.Trim(),
                     ImagenUrl = txtImagenUrl.Text.Trim(),
-                    EsPublico = chkEsPublico.IsChecked == true,
+                    EsPublico = chkEsPublico.IsChecked == true
                 };
                 var eventoResp = await ConexionDB.Client.From<Evento>().Insert(evento);
                 var eventoInserto = eventoResp.Models.First();
@@ -331,93 +271,67 @@ namespace Proyecto_Boletos.vistas
                 // 3. EventoServicios
                 foreach (var fila in _filasServicio)
                 {
-                    if (fila.IdServicioSeleccionado == null)
-                        continue;
-                    await ConexionDB
-                        .Client.From<EventoServicio>()
-                        .Insert(
-                            new EventoServicio
-                            {
-                                IdEvento = idEvento,
-                                IdServicio = fila.IdServicioSeleccionado.Value,
-                                Cantidad = fila.Cantidad,
-                                PrecioAcordado = fila.PrecioAcordado,
-                                EstadoEventoServicio = "pendiente",
-                            }
-                        );
+                    if (fila.IdServicioSeleccionado == null) continue;
+                    await ConexionDB.Client.From<EventoServicio>().Insert(new EventoServicio
+                    {
+                        IdEvento = idEvento,
+                        IdServicio = fila.IdServicioSeleccionado.Value,
+                        Cantidad = fila.Cantidad,
+                        PrecioAcordado = fila.PrecioAcordado,
+                        EstadoEventoServicio = "pendiente"
+                    });
                 }
 
                 // 4. TipoBoletos
                 foreach (var fila in _filasBoleto)
                 {
-                    if (string.IsNullOrWhiteSpace(fila.NombreTipo))
-                        continue;
-                    await ConexionDB
-                        .Client.From<TipoBoleto>()
-                        .Insert(
-                            new TipoBoleto
-                            {
-                                IdEvento = idEvento,
-                                NombreTipoBoleto = fila.NombreTipo,
-                                Precio = fila.Precio,
-                                CantidadTotal = fila.CantidadTotal,
-                                CantidadDisponible = fila.CantidadTotal,
-                                Descripcion = fila.Descripcion,
-                                UrlImagen = fila.ImagenUrl,
-                            }
-                        );
+                    if (string.IsNullOrWhiteSpace(fila.NombreTipo)) continue;
+                    await ConexionDB.Client.From<TipoBoleto>().Insert(new TipoBoleto
+                    {
+                        IdEvento = idEvento,
+                        NombreTipoBoleto = fila.NombreTipo,
+                        Precio = fila.Precio,
+                        CantidadTotal = fila.CantidadTotal,
+                        CantidadDisponible = fila.CantidadTotal,
+                        Descripcion = fila.Descripcion,
+                        UrlImagen = fila.ImagenUrl
+                    });
                 }
 
                 // 5. Pago opcional
                 if (ventanaPago.Resultado == ResultadoPago.Pagar)
                 {
-                    var ordenResp = await ConexionDB
-                        .Client.From<Orden>()
-                        .Insert(
-                            new Orden
-                            {
-                                IdUsuario = _idUsuario,
-                                FechaOrden = DateTime.Now,
-                                EstadoOrden = "pendiente",
-                                DescuentoOrden = 0,
-                            }
-                        );
+                    var ordenResp = await ConexionDB.Client.From<Orden>().Insert(new Orden
+                    {
+                        IdUsuario = _idUsuario,
+                        FechaOrden = DateTime.Now,
+                        EstadoOrden = "pendiente",
+                        DescuentoOrden = 0
+                    });
                     var ordenInserta = ordenResp.Models.First();
 
-                    await ConexionDB
-                        .Client.From<Pago>()
-                        .Insert(
-                            new Pago
-                            {
-                                IdOrden = ordenInserta.IdOrden,
-                                IdMetodoPago = ventanaPago.IdMetodoPagoSeleccionado,
-                                MontoPago = ventanaPago.Monto,
-                                Moneda = "BOB",
-                                FechaPago = DateTime.Now,
-                                EstadoPago = "pendiente",
-                                ReferenciaPago = ventanaPago.Nota,
-                            }
-                        );
+                    await ConexionDB.Client.From<Pago>().Insert(new Pago
+                    {
+                        IdOrden = ordenInserta.IdOrden,
+                        IdMetodoPago = ventanaPago.IdMetodoPagoSeleccionado,
+                        MontoPago = ventanaPago.Monto,
+                        Moneda = "BOB",
+                        FechaPago = DateTime.Now,
+                        EstadoPago = "pendiente",
+                        ReferenciaPago = ventanaPago.Nota
+                    });
                 }
 
-                MessageBox.Show(
-                    "Evento creado exitosamente.",
-                    "Éxito",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
+                MessageBox.Show("Evento creado exitosamente.", "Éxito",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
 
                 this.DialogResult = true;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error al guardar: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Error al guardar: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
                 btnGuardar.IsEnabled = true;
                 txtEstadoGuardado.Text = "";
             }
@@ -425,14 +339,8 @@ namespace Proyecto_Boletos.vistas
 
         private void btnCancelar_Click(object sender, RoutedEventArgs e)
         {
-            if (
-                MessageBox.Show(
-                    "¿Seguro que deseas cancelar? Se perderán los datos.",
-                    "Confirmar",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question
-                ) == MessageBoxResult.Yes
-            )
+            if (MessageBox.Show("¿Seguro que deseas cancelar? Se perderán los datos.",
+                "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 this.Close();
         }
     }
@@ -458,28 +366,24 @@ namespace Proyecto_Boletos.vistas
         private TextBox _txtPrecio;
         private TextBlock _txtInfoProveedor;
 
-        public FilaServicio(
-            List<Servicio> servicios,
-            List<Proveedor> proveedores,
-            List<ProveedorServicio> proveedorServicios
-        )
+        public FilaServicio(List<Servicio> servicios, List<Proveedor> proveedores,
+                            List<ProveedorServicio> proveedorServicios)
         {
             _servicios = servicios;
             _proveedores = proveedores;
             _proveedorServicios = proveedorServicios;
 
+            // Agrupar por NombreCategoria (ya cruzado en CargarDatos)
             var categorias = servicios
-                .Select(s => s.Categoria ?? "")
+                .Select(s => s.NombreCategoria ?? "")
                 .Where(c => !string.IsNullOrEmpty(c))
-                .Distinct()
-                .OrderBy(c => c)
-                .ToList();
+                .Distinct().OrderBy(c => c).ToList();
 
             _cmbCategoria = new ComboBox
             {
                 Margin = new Thickness(0, 0, 8, 0),
                 Padding = new Thickness(5),
-                MinWidth = 140,
+                MinWidth = 140
             };
             _cmbCategoria.ItemsSource = categorias;
             _cmbCategoria.SelectionChanged += CmbCategoria_Changed;
@@ -491,7 +395,7 @@ namespace Proyecto_Boletos.vistas
                 MinWidth = 150,
                 DisplayMemberPath = "NombreServicio",
                 SelectedValuePath = "IdServicio",
-                IsEnabled = false,
+                IsEnabled = false
             };
             _cmbServicio.SelectionChanged += CmbServicio_Changed;
 
@@ -502,7 +406,7 @@ namespace Proyecto_Boletos.vistas
                 MinWidth = 150,
                 DisplayMemberPath = "NombreComercial",
                 SelectedValuePath = "NitProveedor",
-                IsEnabled = false,
+                IsEnabled = false
             };
             _cmbProveedor.SelectionChanged += CmbProveedor_Changed;
 
@@ -512,7 +416,7 @@ namespace Proyecto_Boletos.vistas
                 FontSize = 11,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0, 0, 8, 0),
-                MinWidth = 70,
+                MinWidth = 70
             };
 
             _txtCantidad = new TextBox
@@ -520,24 +424,22 @@ namespace Proyecto_Boletos.vistas
                 Text = "1",
                 Width = 50,
                 Padding = new Thickness(5),
-                Margin = new Thickness(0, 0, 8, 0),
+                Margin = new Thickness(0, 0, 8, 0)
             };
             _txtCantidad.TextChanged += (s, e) =>
             {
-                if (int.TryParse(_txtCantidad.Text, out int c))
-                    Cantidad = c;
+                if (int.TryParse(_txtCantidad.Text, out int c)) Cantidad = c;
             };
 
             _txtPrecio = new TextBox
             {
                 Width = 80,
                 Padding = new Thickness(5),
-                Margin = new Thickness(0, 0, 8, 0),
+                Margin = new Thickness(0, 0, 8, 0)
             };
             _txtPrecio.TextChanged += (s, e) =>
             {
-                if (int.TryParse(_txtPrecio.Text, out int p))
-                    PrecioAcordado = p;
+                if (int.TryParse(_txtPrecio.Text, out int p)) PrecioAcordado = p;
             };
 
             var btnEliminar = new Button
@@ -548,38 +450,30 @@ namespace Proyecto_Boletos.vistas
                 Background = new SolidColorBrush(Color.FromRgb(244, 67, 54)),
                 Foreground = Brushes.White,
                 BorderBrush = new SolidColorBrush(Color.FromRgb(244, 67, 54)),
-                Cursor = Cursors.Hand,
+                Cursor = Cursors.Hand
             };
             btnEliminar.Click += (s, e) => OnEliminar?.Invoke();
 
             var fila = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                Margin = new Thickness(0, 4, 0, 4),
+                Margin = new Thickness(0, 4, 0, 4)
             };
 
-            void Lbl(string t) =>
-                fila.Children.Add(
-                    new TextBlock
-                    {
-                        Text = t,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Margin = new Thickness(0, 0, 5, 0),
-                        FontSize = 12,
-                    }
-                );
+            void Lbl(string t) => fila.Children.Add(new TextBlock
+            {
+                Text = t,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 5, 0),
+                FontSize = 12
+            });
 
-            Lbl("Categoría:");
-            fila.Children.Add(_cmbCategoria);
-            Lbl("Servicio:");
-            fila.Children.Add(_cmbServicio);
-            Lbl("Proveedor:");
-            fila.Children.Add(_cmbProveedor);
+            Lbl("Categoría:"); fila.Children.Add(_cmbCategoria);
+            Lbl("Servicio:"); fila.Children.Add(_cmbServicio);
+            Lbl("Proveedor:"); fila.Children.Add(_cmbProveedor);
             fila.Children.Add(_txtInfoProveedor);
-            Lbl("Cant:");
-            fila.Children.Add(_txtCantidad);
-            Lbl("Precio Bs:");
-            fila.Children.Add(_txtPrecio);
+            Lbl("Cant:"); fila.Children.Add(_txtCantidad);
+            Lbl("Precio Bs:"); fila.Children.Add(_txtPrecio);
             fila.Children.Add(btnEliminar);
 
             Panel = new Border
@@ -587,17 +481,17 @@ namespace Proyecto_Boletos.vistas
                 Child = fila,
                 BorderBrush = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
                 BorderThickness = new Thickness(0, 0, 0, 1),
-                Padding = new Thickness(0, 4, 0, 4),
+                Padding = new Thickness(0, 4, 0, 4)
             };
         }
 
         private void CmbCategoria_Changed(object sender, SelectionChangedEventArgs e)
         {
             var categoria = _cmbCategoria.SelectedItem as string;
-            if (categoria == null)
-                return;
+            if (categoria == null) return;
 
-            _cmbServicio.ItemsSource = _servicios.Where(s => s.Categoria == categoria).ToList();
+            // Filtrar por NombreCategoria
+            _cmbServicio.ItemsSource = _servicios.Where(s => s.NombreCategoria == categoria).ToList();
             _cmbServicio.IsEnabled = true;
             _cmbServicio.SelectedIndex = -1;
             _cmbProveedor.ItemsSource = null;
@@ -609,19 +503,16 @@ namespace Proyecto_Boletos.vistas
         private void CmbServicio_Changed(object sender, SelectionChangedEventArgs e)
         {
             var servicio = _cmbServicio.SelectedItem as Servicio;
-            if (servicio == null)
-                return;
+            if (servicio == null) return;
 
             IdServicioSeleccionado = servicio.IdServicio;
 
             var nitsProveedores = _proveedorServicios
                 .Where(ps => ps.IdServicio == servicio.IdServicio)
-                .Select(ps => ps.IdProveedor)
-                .ToList();
+                .Select(ps => ps.IdProveedor).ToList();
 
             var proveedoresFiltrados = _proveedores
-                .Where(p => nitsProveedores.Contains(p.NitProveedor))
-                .ToList();
+                .Where(p => nitsProveedores.Contains(int.Parse(p.NitProveedor))).ToList();
 
             _cmbProveedor.ItemsSource = proveedoresFiltrados;
             _cmbProveedor.IsEnabled = proveedoresFiltrados.Count > 0;
@@ -632,12 +523,18 @@ namespace Proyecto_Boletos.vistas
         private void CmbProveedor_Changed(object sender, SelectionChangedEventArgs e)
         {
             var proveedor = _cmbProveedor.SelectedItem as Proveedor;
-            if (proveedor == null)
-                return;
+            if (proveedor == null) return;
 
-            PrecioAcordado = (int)proveedor.Precio;
-            _txtPrecio.Text = proveedor.Precio.ToString();
-            _txtInfoProveedor.Text = $"Bs {proveedor.Precio}";
+            // Precio viene de proveedor_servicio
+            var ps = _proveedorServicios.Find(x =>
+                x.IdProveedor == int.Parse(proveedor.NitProveedor) &&
+                x.IdServicio == IdServicioSeleccionado);
+
+            long precio = ps != null ? ps.Precio : 0;
+
+            PrecioAcordado = (int)precio;
+            _txtPrecio.Text = precio.ToString();
+            _txtInfoProveedor.Text = $"Bs {precio}";
         }
     }
 
@@ -655,48 +552,15 @@ namespace Proyecto_Boletos.vistas
 
         public FilaBoleto()
         {
-            var txtNombre = new TextBox
-            {
-                Width = 130,
-                Padding = new Thickness(5),
-                Margin = new Thickness(0, 0, 8, 0),
-            };
-            var txtPrecio = new TextBox
-            {
-                Width = 80,
-                Padding = new Thickness(5),
-                Margin = new Thickness(0, 0, 8, 0),
-            };
-            var txtCantidad = new TextBox
-            {
-                Width = 70,
-                Padding = new Thickness(5),
-                Margin = new Thickness(0, 0, 8, 0),
-            };
-            var txtDesc = new TextBox
-            {
-                Width = 150,
-                Padding = new Thickness(5),
-                Margin = new Thickness(0, 0, 8, 0),
-            };
-            var txtImagen = new TextBox
-            {
-                Width = 120,
-                Padding = new Thickness(5),
-                Margin = new Thickness(0, 0, 8, 0),
-            };
+            var txtNombre = new TextBox { Width = 130, Padding = new Thickness(5), Margin = new Thickness(0, 0, 8, 0) };
+            var txtPrecio = new TextBox { Width = 80, Padding = new Thickness(5), Margin = new Thickness(0, 0, 8, 0) };
+            var txtCantidad = new TextBox { Width = 70, Padding = new Thickness(5), Margin = new Thickness(0, 0, 8, 0) };
+            var txtDesc = new TextBox { Width = 150, Padding = new Thickness(5), Margin = new Thickness(0, 0, 8, 0) };
+            var txtImagen = new TextBox { Width = 120, Padding = new Thickness(5), Margin = new Thickness(0, 0, 8, 0) };
 
             txtNombre.TextChanged += (s, e) => NombreTipo = txtNombre.Text;
-            txtPrecio.TextChanged += (s, e) =>
-            {
-                if (decimal.TryParse(txtPrecio.Text, out decimal p))
-                    Precio = p;
-            };
-            txtCantidad.TextChanged += (s, e) =>
-            {
-                if (int.TryParse(txtCantidad.Text, out int c))
-                    CantidadTotal = c;
-            };
+            txtPrecio.TextChanged += (s, e) => { if (decimal.TryParse(txtPrecio.Text, out decimal p)) Precio = p; };
+            txtCantidad.TextChanged += (s, e) => { if (int.TryParse(txtCantidad.Text, out int c)) CantidadTotal = c; };
             txtDesc.TextChanged += (s, e) => Descripcion = txtDesc.Text;
             txtImagen.TextChanged += (s, e) => ImagenUrl = txtImagen.Text;
 
@@ -708,37 +572,29 @@ namespace Proyecto_Boletos.vistas
                 Background = new SolidColorBrush(Color.FromRgb(244, 67, 54)),
                 Foreground = Brushes.White,
                 BorderBrush = new SolidColorBrush(Color.FromRgb(244, 67, 54)),
-                Cursor = Cursors.Hand,
+                Cursor = Cursors.Hand
             };
             btnEliminar.Click += (s, e) => OnEliminar?.Invoke();
 
             var fila = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                Margin = new Thickness(0, 4, 0, 4),
+                Margin = new Thickness(0, 4, 0, 4)
             };
 
-            void Lbl(string t) =>
-                fila.Children.Add(
-                    new TextBlock
-                    {
-                        Text = t,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Margin = new Thickness(0, 0, 5, 0),
-                        FontSize = 12,
-                    }
-                );
+            void Lbl(string t) => fila.Children.Add(new TextBlock
+            {
+                Text = t,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 5, 0),
+                FontSize = 12
+            });
 
-            Lbl("Nombre:");
-            fila.Children.Add(txtNombre);
-            Lbl("Precio Bs:");
-            fila.Children.Add(txtPrecio);
-            Lbl("Cantidad:");
-            fila.Children.Add(txtCantidad);
-            Lbl("Descripción:");
-            fila.Children.Add(txtDesc);
-            Lbl("Imagen URL:");
-            fila.Children.Add(txtImagen);
+            Lbl("Nombre:"); fila.Children.Add(txtNombre);
+            Lbl("Precio Bs:"); fila.Children.Add(txtPrecio);
+            Lbl("Cantidad:"); fila.Children.Add(txtCantidad);
+            Lbl("Descripción:"); fila.Children.Add(txtDesc);
+            Lbl("Imagen URL:"); fila.Children.Add(txtImagen);
             fila.Children.Add(btnEliminar);
 
             Panel = new Border
@@ -746,7 +602,7 @@ namespace Proyecto_Boletos.vistas
                 Child = fila,
                 BorderBrush = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
                 BorderThickness = new Thickness(0, 0, 0, 1),
-                Padding = new Thickness(0, 4, 0, 4),
+                Padding = new Thickness(0, 4, 0, 4)
             };
         }
     }

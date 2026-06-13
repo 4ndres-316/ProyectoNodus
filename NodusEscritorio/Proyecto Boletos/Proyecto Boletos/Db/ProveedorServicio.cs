@@ -15,9 +15,12 @@ namespace Proyecto_Boletos.Db
         public int IdProveedorServicio { get; set; }
 
         [Column("id_proveedor")]
-        public string IdProveedor { get; set; } = string.Empty;
+        public int IdProveedor { get; set; }
 
         [Column("id_servicio")]
         public int IdServicio { get; set; }
+
+        [Column("precio")]
+        public long Precio { get; set; }
     }
 }

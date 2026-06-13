@@ -24,7 +24,7 @@ namespace Proyecto_Boletos.vistas
             if (_idRol == 1)
                 //btnVistaAdmin.Visibility = Visibility.Visible;
 
-            btnNuevo.Click += btnNuevo_Click;
+                btnNuevo.Click += btnNuevo_Click;
             btnGuardar.Click += btnGuardar_Click;
             /*btnEditar.Click += btnEditar_Click;
             btnEliminar.Click += btnEliminar_Click;*/
@@ -39,7 +39,8 @@ namespace Proyecto_Boletos.vistas
         }
 
         // Solo para el diseñador de Visual Studio
-        public ProveedoresView() : this(0) { }
+        public ProveedoresView()
+            : this(0) { }
 
         // ---------------------------------------------------------------
         // Carga de datos
@@ -54,8 +55,12 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar ciudades: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al cargar ciudades: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -69,8 +74,12 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar proveedores: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al cargar proveedores: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -122,18 +131,28 @@ namespace Proyecto_Boletos.vistas
 
         private async void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNitProveedor.Text) ||
-                string.IsNullOrWhiteSpace(txtNombreComercial.Text))
+            if (
+                string.IsNullOrWhiteSpace(txtNitProveedor.Text)
+                || string.IsNullOrWhiteSpace(txtNombreComercial.Text)
+            )
             {
-                MessageBox.Show("El NIT y el nombre comercial son obligatorios.",
-                    "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "El NIT y el nombre comercial son obligatorios.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 
             if (cmbCiudad.SelectedValue == null)
             {
-                MessageBox.Show("Debe seleccionar una ciudad.",
-                    "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Debe seleccionar una ciudad.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 
@@ -146,7 +165,9 @@ namespace Proyecto_Boletos.vistas
                     _proveedorSeleccionado.NombreComercial = txtNombreComercial.Text.Trim();
                     _proveedorSeleccionado.TelefonoComercial = txtTelefonoComercial.Text.Trim();
                     _proveedorSeleccionado.IdCiudad = idCiudad;
-                    _proveedorSeleccionado.EstadoProveedor = ((ComboBoxItem)cmbEstadoProveedor.SelectedItem).Content.ToString();
+                    _proveedorSeleccionado.EstadoProveedor = (
+                        (ComboBoxItem)cmbEstadoProveedor.SelectedItem
+                    ).Content.ToString();
 
                     await ConexionDB.Client.From<Proveedor>().Update(_proveedorSeleccionado);
                 }
@@ -158,7 +179,9 @@ namespace Proyecto_Boletos.vistas
                         NombreComercial = txtNombreComercial.Text.Trim(),
                         TelefonoComercial = txtTelefonoComercial.Text.Trim(),
                         IdCiudad = idCiudad,
-                        EstadoProveedor = ((ComboBoxItem)cmbEstadoProveedor.SelectedItem).Content.ToString()
+                        EstadoProveedor = (
+                            (ComboBoxItem)cmbEstadoProveedor.SelectedItem
+                        ).Content.ToString(),
                     };
 
                     await ConexionDB.Client.From<Proveedor>().Insert(nuevo);
@@ -173,21 +196,30 @@ namespace Proyecto_Boletos.vistas
                 btnNuevo.IsEnabled = true;
                 dgProveedores.IsEnabled = true;
 
-                MessageBox.Show("Proveedor guardado exitosamente.", "Éxito",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    "Proveedor guardado exitosamente.",
+                    "Éxito",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar proveedor: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al guardar proveedor: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
         private void btnEditar_Click(object sender, RoutedEventArgs e)
         {
-            if (_proveedorSeleccionado == null) return;
+            if (_proveedorSeleccionado == null)
+                return;
 
-            txtNitProveedor.Text = _proveedorSeleccionado.NitProveedor;
+            txtNitProveedor.Text = _proveedorSeleccionado.NitProveedor.ToString();
             txtNombreComercial.Text = _proveedorSeleccionado.NombreComercial;
             txtTelefonoComercial.Text = _proveedorSeleccionado.TelefonoComercial;
 
@@ -213,30 +245,43 @@ namespace Proyecto_Boletos.vistas
 
         private async void btnEliminar_Click(object sender, RoutedEventArgs e)
         {
-            if (_proveedorSeleccionado == null) return;
+            if (_proveedorSeleccionado == null)
+                return;
 
             var resultado = MessageBox.Show(
                 $"¿Estás seguro de eliminar el proveedor '{_proveedorSeleccionado.NombreComercial}'?",
-                "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                "Confirmar",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
 
             if (resultado == MessageBoxResult.Yes)
             {
                 try
                 {
-                    await ConexionDB.Client.From<Proveedor>()
+                    await ConexionDB
+                        .Client.From<Proveedor>()
                         .Where(x => x.NitProveedor == _proveedorSeleccionado.NitProveedor)
                         .Delete();
 
                     await CargarProveedores();
                     LimpiarFormulario();
 
-                    MessageBox.Show("Proveedor eliminado.", "Éxito",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+                        "Proveedor eliminado.",
+                        "Éxito",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error: {ex.Message}", "Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        $"Error: {ex.Message}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
             }
         }

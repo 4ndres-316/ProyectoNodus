@@ -41,8 +41,12 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar ciudades: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al cargar ciudades: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -64,8 +68,12 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar recintos: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al cargar recintos: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -78,8 +86,12 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar eventos: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al cargar eventos: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -87,7 +99,8 @@ namespace Proyecto_Boletos.vistas
 
         private void txtBuscar_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_recintos == null) return;
+            if (_recintos == null)
+                return;
 
             var texto = (txtBuscar.Text ?? "").Trim().ToLower();
 
@@ -97,92 +110,16 @@ namespace Proyecto_Boletos.vistas
                 return;
             }
 
-            dgRecintos.ItemsSource = _recintos.Where(r =>
-                (r.NombreRecinto ?? "").ToLower().Contains(texto) ||
-                (r.DireccionRecinto ?? "").ToLower().Contains(texto) ||
-                (r.TipoRecinto ?? "").ToLower().Contains(texto) ||
-                (r.EstadoRecinto ?? "").ToLower().Contains(texto) ||
-                (r.NombreCiudad ?? "").ToLower().Contains(texto) ||
-                r.Capacidad.ToString().Contains(texto)
-            ).ToList();
-        }
-
-        // ─── BUSCADOR DE DISPONIBILIDAD ───────────────────────────────────────
-
-        private void btnBuscarDisponibilidad_Click(object sender, RoutedEventArgs e)
-        {
-            if (dpDisponFechaInicio.SelectedDate == null ||
-                dpDisponFechaFin.SelectedDate == null)
-            {
-                MessageBox.Show("Selecciona fecha de inicio y fin.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!TimeSpan.TryParse(txtDisponHoraInicio.Text, out TimeSpan horaInicio) ||
-                !TimeSpan.TryParse(txtDisponHoraFin.Text, out TimeSpan horaFin))
-            {
-                MessageBox.Show("Escribe horas válidas (ejemplo: 16:30).", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!int.TryParse(txtDisponCapacidad.Text, out int capacidadMin))
-                capacidadMin = 0;
-
-            // Rango pedido
-            var inicioSolicitado = dpDisponFechaInicio.SelectedDate.Value.Date + horaInicio;
-            var finSolicitado = dpDisponFechaFin.SelectedDate.Value.Date + horaFin;
-
-            if (finSolicitado <= inicioSolicitado)
-            {
-                MessageBox.Show("La fecha/hora de fin debe ser posterior al inicio.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // IDs de recintos ocupados en ese rango
-            var recintosOcupados = new HashSet<int>();
-
-            foreach (var ev in _eventos ?? new List<Evento>())
-            {
-                var fecha = _fechasEventos?.Find(f => f.Id == ev.IdFechaEvento);
-                if (fecha == null) continue;
-
-                var inicioEvento = fecha.FechaInicio.Date + fecha.HoraInicio;
-                var finEvento = fecha.FechaFin.Date + fecha.HoraFin;
-
-                // Hay solapamiento si los rangos se cruzan
-                bool seSolapa = inicioEvento < finSolicitado &&
-                                finEvento > inicioSolicitado;
-
-                if (seSolapa)
-                    recintosOcupados.Add(ev.IdRecinto);
-            }
-
-            // Filtrar recintos disponibles
-            var disponibles = _recintos?
+            dgRecintos.ItemsSource = _recintos
                 .Where(r =>
-                    !recintosOcupados.Contains(r.IdRecinto) &&
-                    (r.EstadoRecinto ?? "") == "Disponible" &&
-                    r.Capacidad >= capacidadMin)
+                    (r.NombreRecinto ?? "").ToLower().Contains(texto)
+                    || (r.DireccionRecinto ?? "").ToLower().Contains(texto)
+                    || (r.TipoRecinto ?? "").ToLower().Contains(texto)
+                    || (r.EstadoRecinto ?? "").ToLower().Contains(texto)
+                    || (r.NombreCiudad ?? "").ToLower().Contains(texto)
+                    || r.Capacidad.ToString().Contains(texto)
+                )
                 .ToList();
-
-            dgRecintos.ItemsSource = disponibles;
-
-            if (disponibles == null || disponibles.Count == 0)
-                MessageBox.Show("No hay recintos disponibles para ese rango.", "Sin resultados",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void btnLimpiarDisponibilidad_Click(object sender, RoutedEventArgs e)
-        {
-            dpDisponFechaInicio.SelectedDate = null;
-            dpDisponFechaFin.SelectedDate = null;
-            txtDisponHoraInicio.Clear();
-            txtDisponHoraFin.Clear();
-            txtDisponCapacidad.Clear();
-            dgRecintos.ItemsSource = _recintos;
         }
 
         // ─── DATAGRID ─────────────────────────────────────────────────────────
@@ -206,24 +143,33 @@ namespace Proyecto_Boletos.vistas
 
         private async void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNombreRecinto.Text) ||
-                string.IsNullOrWhiteSpace(txtDireccion.Text))
+            if (
+                string.IsNullOrWhiteSpace(txtNombreRecinto.Text)
+                || string.IsNullOrWhiteSpace(txtDireccion.Text)
+            )
             {
-                MessageBox.Show("El nombre y la dirección son obligatorios.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "El nombre y la dirección son obligatorios.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 
             if (!int.TryParse(txtCapacidad.Text, out int capacidadValida))
             {
-                MessageBox.Show("La capacidad debe ser un número entero válido.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "La capacidad debe ser un número entero válido.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 
-            int? idCiudad = cmbIdCiudad.SelectedValue != null
-                ? (int?)cmbIdCiudad.SelectedValue
-                : null;
+            int? idCiudad =
+                cmbIdCiudad.SelectedValue != null ? (int?)cmbIdCiudad.SelectedValue : null;
 
             try
             {
@@ -234,8 +180,12 @@ namespace Proyecto_Boletos.vistas
                     _recintoSeleccionado.IdCiudad = idCiudad;
                     _recintoSeleccionado.Capacidad = capacidadValida;
                     _recintoSeleccionado.DescripcionRecinto = txtDescripcion.Text.Trim();
-                    _recintoSeleccionado.TipoRecinto = ((ComboBoxItem)cmbTipoRecinto.SelectedItem).Content.ToString();
-                    _recintoSeleccionado.EstadoRecinto = ((ComboBoxItem)cmbEstadoRecinto.SelectedItem).Content.ToString();
+                    _recintoSeleccionado.TipoRecinto = (
+                        (ComboBoxItem)cmbTipoRecinto.SelectedItem
+                    ).Content.ToString();
+                    _recintoSeleccionado.EstadoRecinto = (
+                        (ComboBoxItem)cmbEstadoRecinto.SelectedItem
+                    ).Content.ToString();
 
                     await ConexionDB.Client.From<Recinto>().Update(_recintoSeleccionado);
                 }
@@ -248,8 +198,12 @@ namespace Proyecto_Boletos.vistas
                         IdCiudad = idCiudad,
                         Capacidad = capacidadValida,
                         DescripcionRecinto = txtDescripcion.Text.Trim(),
-                        TipoRecinto = ((ComboBoxItem)cmbTipoRecinto.SelectedItem).Content.ToString(),
-                        EstadoRecinto = ((ComboBoxItem)cmbEstadoRecinto.SelectedItem).Content.ToString()
+                        TipoRecinto = (
+                            (ComboBoxItem)cmbTipoRecinto.SelectedItem
+                        ).Content.ToString(),
+                        EstadoRecinto = (
+                            (ComboBoxItem)cmbEstadoRecinto.SelectedItem
+                        ).Content.ToString(),
                     };
 
                     await ConexionDB.Client.From<Recinto>().Insert(nuevoRecinto);
@@ -262,13 +216,21 @@ namespace Proyecto_Boletos.vistas
                 btnCancelar.IsEnabled = false;
                 btnNuevo.IsEnabled = true;
 
-                MessageBox.Show("Recinto guardado exitosamente", "Éxito",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    "Recinto guardado exitosamente",
+                    "Éxito",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar recinto: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al guardar recinto: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -277,7 +239,8 @@ namespace Proyecto_Boletos.vistas
             if ((sender as Button)?.Tag is Recinto recinto)
                 _recintoSeleccionado = recinto;
 
-            if (_recintoSeleccionado == null) return;
+            if (_recintoSeleccionado == null)
+                return;
 
             txtNombreRecinto.Text = _recintoSeleccionado.NombreRecinto;
             txtDireccion.Text = _recintoSeleccionado.DireccionRecinto;
@@ -287,11 +250,17 @@ namespace Proyecto_Boletos.vistas
 
             foreach (ComboBoxItem item in cmbTipoRecinto.Items)
                 if (item.Content.ToString() == _recintoSeleccionado.TipoRecinto)
-                { cmbTipoRecinto.SelectedItem = item; break; }
+                {
+                    cmbTipoRecinto.SelectedItem = item;
+                    break;
+                }
 
             foreach (ComboBoxItem item in cmbEstadoRecinto.Items)
                 if (item.Content.ToString() == _recintoSeleccionado.EstadoRecinto)
-                { cmbEstadoRecinto.SelectedItem = item; break; }
+                {
+                    cmbEstadoRecinto.SelectedItem = item;
+                    break;
+                }
 
             HabilitarFormulario(true);
             _modoEdicion = true;
@@ -305,30 +274,43 @@ namespace Proyecto_Boletos.vistas
             if ((sender as Button)?.Tag is Recinto recinto)
                 _recintoSeleccionado = recinto;
 
-            if (_recintoSeleccionado == null) return;
+            if (_recintoSeleccionado == null)
+                return;
 
             var resultado = MessageBox.Show(
                 $"¿Estás seguro de eliminar '{_recintoSeleccionado.NombreRecinto}'?",
-                "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                "Confirmar",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
 
             if (resultado == MessageBoxResult.Yes)
             {
                 try
                 {
-                    await ConexionDB.Client.From<Recinto>()
+                    await ConexionDB
+                        .Client.From<Recinto>()
                         .Where(x => x.IdRecinto == _recintoSeleccionado.IdRecinto)
                         .Delete();
 
                     await CargarRecintos();
                     LimpiarFormulario();
 
-                    MessageBox.Show("Recinto eliminado", "Éxito",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+                        "Recinto eliminado",
+                        "Éxito",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error: {ex.Message}", "Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        $"Error: {ex.Message}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
             }
         }

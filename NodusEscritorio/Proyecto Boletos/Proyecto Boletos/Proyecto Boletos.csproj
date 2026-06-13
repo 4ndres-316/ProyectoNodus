@@ -59,6 +59,9 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>..\packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
     <Reference Include="Supabase, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Supabase.1.0.5\lib\netstandard2.0\Supabase.dll</HintPath>
     </Reference>
@@ -141,6 +144,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Db\Boleto.cs" />
+    <Compile Include="Db\Categoria.cs" />
     <Compile Include="Db\Ciudad.cs" />
     <Compile Include="Db\ConexionDB.cs" />
     <Compile Include="Db\Contrato.cs" />
@@ -175,6 +179,9 @@
     </Compile>
     <Compile Include="vistas\CreacionEvento.xaml.cs">
       <DependentUpon>CreacionEvento.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="vistas\CreacionReserva.xaml.cs">
+      <DependentUpon>CreacionReserva.xaml</DependentUpon>
     </Compile>
     <Compile Include="vistas\DashboardView.xaml.cs">
       <DependentUpon>DashboardView.xaml</DependentUpon>
@@ -221,6 +228,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="vistas\CreacionEvento.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="vistas\CreacionReserva.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,7 +1,12 @@
-﻿using System;
+﻿using Proyecto_Boletos.Db;
+using QRCoder;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,7 +16,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Proyecto_Boletos.Db;
 
 namespace Proyecto_Boletos.vistas
 {
@@ -29,15 +33,30 @@ namespace Proyecto_Boletos.vistas
     {
         public ResultadoPago Resultado { get; private set; } = ResultadoPago.Cancelado;
         public int IdMetodoPagoSeleccionado { get; private set; }
-        public decimal Monto { get; private set; }
+        public int Monto { get; private set; }
         public string Nota { get; private set; } = string.Empty;
 
         public PagoEventoDialog(List<MetodoPago> metodosPago)
         {
             InitializeComponent();
-            cmbMetodoPago.ItemsSource = metodosPago;
-            if (metodosPago?.Count > 0)
-                cmbMetodoPago.SelectedIndex = 0;
+        }
+
+        private void btnEfectivo_Click(object sender, RoutedEventArgs e)
+        {
+            gridEfectivo.Visibility = Visibility.Visible;
+            gridQR.Visibility = Visibility.Hidden;
+
+
+        }
+
+        private void btnQR_Click(object sender, RoutedEventArgs e)
+        {
+            gridQR.Visibility = Visibility.Visible;
+            gridEfectivo.Visibility = Visibility.Hidden;
+
+            string codigoPago = $"Evento:{Resultado} | Monto:{Monto}";
+
+            GenerarQR(codigoPago);
         }
 
         private void btnSinPago_Click(object sender, RoutedEventArgs e)
@@ -48,32 +67,33 @@ namespace Proyecto_Boletos.vistas
 
         private void btnConfirmar_Click(object sender, RoutedEventArgs e)
         {
-            if (!decimal.TryParse(txtMonto.Text, out decimal monto) || monto <= 0)
-            {
-                MessageBox.Show(
-                    "Ingresa un monto válido.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
-            if (cmbMetodoPago.SelectedValue == null)
-            {
-                MessageBox.Show(
-                    "Selecciona un método de pago.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
+            /*
 
             Resultado = ResultadoPago.Pagar;
-            IdMetodoPagoSeleccionado = (int)cmbMetodoPago.SelectedValue;
-            Monto = monto;
-            Nota = $"{txtNota.Text.Trim()} | Ref: {txtReferencia.Text.Trim()}";
-            this.Close();
+            //Monto = monto;
+            Nota = $"{txtNota.Text.Trim()}";
+            this.Close();*/
+        }
+
+        private void GenerarQR(string texto)
+        {
+            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(texto, QRCodeGenerator.ECCLevel.Q);
+
+            PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
+            byte[] qrBytes = qrCode.GetGraphic(20);
+
+            BitmapImage bitmap = new BitmapImage();
+
+            using (MemoryStream ms = new MemoryStream(qrBytes))
+            {
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = ms;
+                bitmap.EndInit();
+            }
+
+            imgCodigoQR.Source = bitmap;
         }
     }
 }

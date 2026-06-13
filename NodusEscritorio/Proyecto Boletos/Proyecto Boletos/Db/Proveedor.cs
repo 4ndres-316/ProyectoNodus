@@ -25,8 +25,5 @@ namespace Proyecto_Boletos.Db
 
         [Column("estado_proveedor")]
         public string EstadoProveedor { get; set; } = string.Empty;
-
-        [Column("precio")]
-        public int Precio { get; set; }
     }
 }

@@ -18,9 +18,11 @@ namespace Proyecto_Boletos.Db
         public string NombreServicio { get; set; } = string.Empty;
 
         [Column("categoria")]
-        public string Categoria { get; set; } = string.Empty;
+        public int IdCategoria { get; set; }
 
         [Column("estado")]
         public string Estado { get; set; } = string.Empty;
+
+        public string NombreCategoria { get; set; } = string.Empty;
     }
 }

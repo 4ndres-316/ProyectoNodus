@@ -129,7 +129,7 @@
           <DataGridTextColumn
             Header="NIT"
             Binding="{Binding NitProveedor}"
-            Width="120"
+            Width="140"
             ElementStyle="{StaticResource TextoCentrado}"
           />
 
@@ -143,21 +143,21 @@
           <DataGridTextColumn
             Header="Teléfono"
             Binding="{Binding TelefonoComercial}"
-            Width="150"
+            Width="180"
             ElementStyle="{StaticResource TextoCentrado}"
           />
 
           <DataGridTextColumn
             Header="Ciudad"
             Binding="{Binding IdCiudad}"
-            Width="80"
+            Width="150"
             ElementStyle="{StaticResource TextoCentrado}"
           />
 
           <DataGridTextColumn
             Header="Estado"
             Binding="{Binding EstadoProveedor}"
-            Width="120"
+            Width="100"
             ElementStyle="{StaticResource TextoCentrado}"
           />
           <DataGridTemplateColumn Header="Opciones" Width="160">
