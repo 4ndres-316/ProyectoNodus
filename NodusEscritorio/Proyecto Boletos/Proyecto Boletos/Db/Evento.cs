@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
@@ -15,7 +11,7 @@ namespace Proyecto_Boletos.Db
         public int IdEvento { get; set; }
 
         [Column("id_organizador")]
-        public int? IdOrganizador { get; set; }
+        public int IdOrganizador { get; set; }
 
         [Column("id_recinto")]
         public int IdRecinto { get; set; }
@@ -32,13 +28,16 @@ namespace Proyecto_Boletos.Db
         [Column("estado_evento")]
         public string EstadoEvento { get; set; } = string.Empty;
 
-        [Column("nombre_reservante")]
-        public string NombreReservante { get; set; } = string.Empty;
-
-        [Column("esPublico")]
-        public bool EsPublico { get; set; } = true;
+        [Column("es_publico")]
+        public bool EsPublico { get; set; }
 
         [Column("imagen_url")]
         public string ImagenUrl { get; set; } = string.Empty;
+
+        [Column("nombre_reservante")]
+        public string NombreReservante { get; set; } = string.Empty;
+
+        [Column("id_reserva")]
+        public int? IdReserva { get; set; }
     }
 }

@@ -2,9 +2,9 @@
   x:Class="Proyecto_Boletos.vistas.PagoEventoDialog"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  Title="Confirmar Reserva"
-  Height="450"
-  Width="400"
+  Title="Confirmar Pago"
+  Height="480"
+  Width="420"
   WindowStartupLocation="CenterOwner"
   ResizeMode="NoResize"
   Icon="/Logo_Nodus.png"
@@ -26,51 +26,54 @@
       Foreground="{DynamicResource Color1}"
     />
 
+    <!-- Métodos de Pago -->
     <StackPanel Grid.Row="1" Margin="0,0,0,12">
-      <TextBlock Text="Método de Pago" FontWeight="SemiBold" Margin="0,0,0,4" />
-      <Grid Margin="0,10">
+      <TextBlock Text="Método de Pago" FontWeight="SemiBold" Margin="0,0,0,8" />
+      <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Button
-          Content="Efectivo"
+          Content="💵 Efectivo"
           x:Name="btnEfectivo"
           Grid.Column="0"
-          Width="150"
-          Height="36"
+          Height="40"
+          Margin="0,0,5,0"
           Background="{DynamicResource Color2}"
           Foreground="{DynamicResource Color4}"
-          BorderBrush="{DynamicResource Color2}" Click="btnEfectivo_Click"
+          BorderBrush="{DynamicResource Color2}"
+          Click="btnEfectivo_Click"
         />
-
         <Button
-          Content="QR"
+          Content="📱 QR"
           x:Name="btnQR"
           Grid.Column="1"
-          Width="150"
-          Height="36"
+          Height="40"
+          Margin="5,0,0,0"
           Background="{DynamicResource Color2}"
           Foreground="{DynamicResource Color4}"
-          BorderBrush="{DynamicResource Color2}" Click="btnQR_Click"
+          BorderBrush="{DynamicResource Color2}"
+          Click="btnQR_Click"
         />
       </Grid>
     </StackPanel>
 
-    <!-- Efectivo -->
-    <Grid Grid.Row="2" x:Name="gridEfectivo" Visibility="Visible">
+    <!-- Panel Efectivo -->
+    <Grid Grid.Row="2" x:Name="gridEfectivo" Visibility="Collapsed">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
+
       <StackPanel Grid.Row="0" Margin="0,0,0,12">
-        <TextBlock Text="Monto" FontWeight="SemiBold" Margin="0,0,0,4" />
+        <TextBlock Text="Monto (Bs)" FontWeight="SemiBold" Margin="0,0,0,4" />
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="40" />
           </Grid.ColumnDefinitions>
-          <TextBox x:Name="txtMonto" Padding="6,5" IsReadOnly="True"/>
+          <TextBox x:Name="txtMonto" Padding="6,5" IsEnabled="False"/>
           <TextBlock
             Grid.Column="1"
             Text="Bs"
@@ -93,20 +96,24 @@
       </StackPanel>
     </Grid>
 
-    <!-- QR -->
-    <Grid Grid.Row="2" x:Name="gridQR" Visibility="Hidden">
-      <TextBlock Text="Monto" FontWeight="SemiBold" Margin="0,0,0,4" />
-      <Image x:Name="imgCodigoQR" Grid.Row="2" Stretch="Uniform" />
+    <!-- Panel QR -->
+    <Grid Grid.Row="2" x:Name="gridQR" Visibility="Collapsed">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <TextBlock Text="Escanea el código QR para pagar" FontWeight="SemiBold" Margin="0,0,0,8" />
+      <Image x:Name="imgCodigoQR" Grid.Row="1" Stretch="Uniform" MaxHeight="150" />
     </Grid>
 
     <!-- Botones -->
-    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
       <Button
         Content="Sin pago por ahora"
         x:Name="btnSinPago"
-        Width="150"
+        Width="140"
         Height="36"
-        Margin="0,0,8,0"
+        Margin="0,0,10,0"
         Background="{DynamicResource Color2}"
         Foreground="{DynamicResource Color4}"
         BorderBrush="{DynamicResource Color2}"

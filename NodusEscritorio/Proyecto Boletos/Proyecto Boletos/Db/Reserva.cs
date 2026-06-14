@@ -14,17 +14,14 @@ namespace Proyecto_Boletos.Db
         [PrimaryKey("id_reserva")]
         public int IdReserva { get; set; }
 
-        [Column("id_evento")]
-        public int IdEvento { get; set; }
-
-        [Column("codigo_reserva")]
-        public string CodigoReserva { get; set; } = string.Empty;
-
-        [Column("motivo_reserva")]
-        public string MotivoReserva { get; set; } = string.Empty;
+        [Column("id_recinto")]
+        public int IdRecinto { get; set; }
 
         [Column("fecha_reserva")]
-        public DateTime FechaReserva { get; set; }
+        public int FechaReserva { get; set; }
+
+        [Column("nombre_reservante")]
+        public string NombreReservante { get; set; } = string.Empty;
 
         [Column("estado_reserva")]
         public string EstadoReserva { get; set; } = string.Empty;

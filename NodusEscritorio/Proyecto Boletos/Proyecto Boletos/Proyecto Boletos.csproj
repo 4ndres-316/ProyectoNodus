@@ -180,6 +180,8 @@
     <Compile Include="vistas\CreacionEvento.xaml.cs">
       <DependentUpon>CreacionEvento.xaml</DependentUpon>
     </Compile>
+    <Compile Include="vistas\FilaBoleto.cs" />
+    <Compile Include="vistas\FilaServicio.cs" />
     <Compile Include="vistas\CreacionReserva.xaml.cs">
       <DependentUpon>CreacionReserva.xaml</DependentUpon>
     </Compile>

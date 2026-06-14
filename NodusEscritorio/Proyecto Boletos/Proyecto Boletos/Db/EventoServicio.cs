@@ -9,7 +9,7 @@ using Supabase.Postgrest.Models;
 namespace Proyecto_Boletos.Db
 {
     [Table("evento_servicio")]
-    internal class EventoServicio : BaseModel 
+    public class EventoServicio : BaseModel
     {
         [PrimaryKey("id_evento_servicio")]
         public int IdEventoServicio { get; set; }

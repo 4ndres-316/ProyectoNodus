@@ -38,59 +38,82 @@ namespace Proyecto_Boletos.vistas
                 // 1. USUARIOS ACTIVOS
                 var responseUsuarios = await ConexionDB
                     .Client.From<Usuario>()
-                    .Filter(
-                        "estado_usuario",
-                        Supabase.Postgrest.Constants.Operator.Equals,
-                        "Activo"
-                    )
+                    .Filter("estado_usuario", Supabase.Postgrest.Constants.Operator.Equals, "Activo")
                     .Get();
                 txtUsuariosActivos.Text = responseUsuarios.Models.Count.ToString();
 
                 // 2. EVENTOS + FECHAS + RECINTOS
-                var responseEventos = await ConexionDB.Client.From<Evento>().Get();
-                var responseFechas = await ConexionDB.Client.From<FechaEvento>().Get();
+                var responseEventos  = await ConexionDB.Client.From<Evento>().Get();
+                var responseFechas   = await ConexionDB.Client.From<FechaEvento>().Get();
                 var responseRecintos = await ConexionDB.Client.From<Recinto>().Get();
 
-                var eventos = responseEventos.Models;
-                var fechas = responseFechas.Models;
+                var eventos  = responseEventos.Models;
+                var fechas   = responseFechas.Models;
                 var recintos = responseRecintos.Models;
+
+                // Normalizar estado por si la BD trae valores con comillas/cast
+                foreach (var ev in eventos)
+                {
+                    ev.EstadoEvento = ev.EstadoEvento
+                        .Replace("'", "")
+                        .Replace("::character varying", "")
+                        .Trim();
+                }
 
                 var eventosConFecha = eventos
                     .Select(ev => new
                     {
-                        Evento = ev,
+                        Evento      = ev,
                         FechaEvento = fechas.Find(f => f.Id == ev.IdFechaEvento),
                     })
                     .Where(x => x.FechaEvento != null)
                     .ToList();
 
-                // 3. TOTAL EVENTOS ACTIVOS
+                // 3. TOTAL EVENTOS PROGRAMADOS
                 txtTotalEventos.Text = eventosConFecha
-                    .Count(x => x.Evento.EstadoEvento == "Programado")
+                    .Count(x => x.Evento.EstadoEvento == "Programado"
+                             || x.Evento.EstadoEvento == "En espera"
+                             || x.Evento.EstadoEvento == "Pagado")
                     .ToString();
 
                 // 4. PRÓXIMOS EVENTOS
                 var proximosEventos = eventosConFecha
-                    .Where(x =>
-                        x.Evento.EstadoEvento == "Programado"
-                        && x.FechaEvento.FechaInicio.Date >= DateTime.Today
-                    )
+                    .Where(x => x.FechaEvento.FechaInicio.Date >= DateTime.Today)
                     .OrderBy(x => x.FechaEvento.FechaInicio)
                     .Select(x =>
                     {
                         var recinto = recintos.Find(r => r.IdRecinto == x.Evento.IdRecinto);
                         return new
                         {
-                            Fecha = x.FechaEvento.FechaInicio.ToString("dd/MM/yyyy"),
-                            Hora = x.FechaEvento.HoraInicio.ToString(@"hh\:mm"),
-                            Nombre = x.Evento.NombreEvento,
+                            Fecha   = x.FechaEvento.FechaInicio.ToString("dd/MM/yyyy"),
+                            Hora    = x.FechaEvento.HoraInicio.ToString(@"hh\:mm"),
+                            Nombre  = x.Evento.NombreEvento,
                             Recinto = recinto?.NombreRecinto ?? x.Evento.IdRecinto.ToString(),
-                            Estado = x.Evento.EstadoEvento,
+                            Estado  = x.Evento.EstadoEvento,
                         };
                     })
                     .ToList();
 
                 dgProximosEventos.ItemsSource = proximosEventos;
+
+                // 5. BOLETOS VENDIDOS e INGRESOS
+                try
+                {
+                    var responseBoletos = await ConexionDB.Client.From<Boleto>().Get();
+                    var boletos = responseBoletos.Models;
+                    var vendidos = boletos.Where(b =>
+                        b.EstadoBoleto == "vendido" ||
+                        b.EstadoBoleto == "usado" ||
+                        b.EstadoBoleto == "pagado").ToList();
+
+                    txtBoletosVendidos.Text = vendidos.Count.ToString();
+                    txtIngresos.Text = $"BS {vendidos.Sum(b => b.PrecioBoleto):N0}";
+                }
+                catch
+                {
+                    txtBoletosVendidos.Text = "0";
+                    txtIngresos.Text = "BS 0";
+                }
             }
             catch (Exception ex)
             {

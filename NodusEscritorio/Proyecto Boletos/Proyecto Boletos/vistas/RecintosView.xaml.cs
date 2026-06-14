@@ -169,7 +169,7 @@ namespace Proyecto_Boletos.vistas
             }
 
             int? idCiudad =
-                cmbIdCiudad.SelectedValue != null ? (int?)cmbIdCiudad.SelectedValue : null;
+                cmbIdCiudad.SelectedValue != null ? (int?)(int)cmbIdCiudad.SelectedValue : null;
 
             try
             {

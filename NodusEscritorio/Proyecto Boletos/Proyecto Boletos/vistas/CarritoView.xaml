@@ -7,6 +7,7 @@
   mc:Ignorable="d"
   d:DesignHeight="550"
   d:DesignWidth="850"
+  Loaded="UserControl_Loaded"
 >
   <Grid Margin="20">
     <Grid.RowDefinitions>
@@ -45,30 +46,37 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        <Grid.Resources>
+          <Style TargetType="Button" x:Key="ButtonStyle">
+            <Setter Property="Width" Value="130" />
+            <Setter Property="Height" Value="35" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+            <Setter Property="Background" Value="{DynamicResource Color1}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Color1}" />
+          </Style>
+        </Grid.Resources>
 
         <Button
           Grid.Column="0"
           Content="Boletos"
-          Width="130"
-          Height="35"
-          HorizontalAlignment="Center"
-          VerticalAlignment="Bottom"
-          Background="{DynamicResource Color1}"
-          Foreground="White"
-          BorderBrush="{DynamicResource Color1}"
+          Style="{StaticResource ButtonStyle}"
+          Click="btnBoletos_Click"
         />
-          
         <Button
           Grid.Column="1"
+          Content="Reservas"
+          Style="{StaticResource ButtonStyle}"
+          Click="btnReservas_Click"
+        />
+        <Button
+          Grid.Column="2"
           Content="Eventos"
-          Width="130"
-          Height="35"
-          HorizontalAlignment="Center"
-          VerticalAlignment="Bottom"
-          Background="{DynamicResource Color1}"
-          Foreground="White"
-          BorderBrush="{DynamicResource Color1}"
+          Style="{StaticResource ButtonStyle}"
+          Click="btnEventos_Click"
         />
       </Grid>
     </Border>
@@ -80,7 +88,7 @@
       CornerRadius="5"
     >
       <DataGrid
-        x:Name="dgReportes"
+        x:Name="dgVentas"
         AutoGenerateColumns="True"
         IsReadOnly="True"
         SelectionMode="Single"

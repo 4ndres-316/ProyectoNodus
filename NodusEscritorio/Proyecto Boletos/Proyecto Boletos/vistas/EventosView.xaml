@@ -206,74 +206,80 @@
         MaxWidth="350"
         Effect="{x:Null}"
       >
-        <StackPanel>
-          <TextBlock
-            x:Name="txtPopupFecha"
-            FontWeight="Bold"
-            FontSize="14"
-            Foreground="{DynamicResource Color1}"
-            Margin="0,0,0,8"
-          />
-          <ItemsControl x:Name="lstPopupEventos">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border Background="#E8F5EE" CornerRadius="3" Padding="8,5" Margin="0,3">
-                  <StackPanel>
-                    <TextBlock Text="{Binding NombreEvento}" FontWeight="SemiBold" FontSize="13" />
-
-                    <TextBlock FontSize="12" Foreground="#555">
-                      <Run Text="{Binding HoraEvento,StringFormat=hh\\:mm}" />
-                      <Run Text=" → " />
-                      <Run Text="{Binding HoraFin,StringFormat=hh\\:mm}" />
-                      <Run Text=" — " />
-                      <Run Text="{Binding NombreRecinto}" />
-                    </TextBlock>
-
-                    <TextBlock FontSize="11" Foreground="#888">
-                      <Run Text="{Binding FechaEvento,StringFormat=dd/MM/yyyy}" />
-                      <Run Text=" → " />
-                      <Run Text="{Binding FechaFin,StringFormat=dd/MM/yyyy}" />
-                    </TextBlock>
-
-                    <TextBlock Text="{Binding Categoria}" FontSize="11" Foreground="#888" />
-
-                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                      <Button
-                        Content="Reprogramar"
-                        Height="26"
-                        Margin="0 3 3 0"
-                        Padding="5 0"
-                        Background="{DynamicResource Color1}"
-                        Foreground="White"
-                        BorderBrush="{DynamicResource Color1}"
-                        Tag="{Binding}"
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" MaxHeight="400">
+          <StackPanel>
+            <TextBlock
+              x:Name="txtPopupFecha"
+              FontWeight="Bold"
+              FontSize="14"
+              Foreground="{DynamicResource Color1}"
+              Margin="0,0,0,8"
+            />
+            <ItemsControl x:Name="lstPopupEventos">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Background="#E8F5EE" CornerRadius="3" Padding="8,5" Margin="0,3">
+                    <StackPanel>
+                      <TextBlock
+                        Text="{Binding NombreEvento}"
+                        FontWeight="SemiBold"
+                        FontSize="13"
                       />
-                      <Button
-                        Content="Cancelar"
-                        Height="26"
-                        Margin="3 3 0 0"
-                        Padding="10 0"
-                        Background="#F44336"
-                        Foreground="White"
-                        BorderBrush="#F44336"
-                        Tag="{Binding}"
-                      />
+
+                      <TextBlock FontSize="12" Foreground="#555">
+                        <Run Text="{Binding HoraEvento,StringFormat=hh\\:mm}" />
+                        <Run Text=" → " />
+                        <Run Text="{Binding HoraFin,StringFormat=hh\\:mm}" />
+                        <Run Text=" — " />
+                        <Run Text="{Binding NombreRecinto}" />
+                      </TextBlock>
+
+                      <TextBlock FontSize="11" Foreground="#888">
+                        <Run Text="{Binding FechaEvento,StringFormat=dd/MM/yyyy}" />
+                        <Run Text=" → " />
+                        <Run Text="{Binding FechaFin,StringFormat=dd/MM/yyyy}" />
+                      </TextBlock>
+
+                      <TextBlock Text="{Binding Categoria}" FontSize="11" Foreground="#888" />
+
+                      <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <Button
+                          Content="Reprogramar"
+                          Height="26"
+                          Margin="0 3 3 0"
+                          Padding="5 0"
+                          Background="{DynamicResource Color1}"
+                          Foreground="White"
+                          BorderBrush="{DynamicResource Color1}"
+                          Tag="{Binding}"
+                        />
+                        <Button
+                          Content="Cancelar"
+                          Height="26"
+                          Margin="3 3 0 0"
+                          Padding="10 0"
+                          Background="#F44336"
+                          Foreground="White"
+                          BorderBrush="#F44336"
+                          Tag="{Binding}"
+                        />
+                      </StackPanel>
                     </StackPanel>
-                  </StackPanel>
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-          <TextBlock
-            x:Name="txtSinEventos"
-            Text="Sin eventos para este día"
-            FontSize="12"
-            Foreground="{DynamicResource Color4}"
-            HorizontalAlignment="Center"
-            Margin="0,5"
-            Visibility="Collapsed"
-          />
-        </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock
+              x:Name="txtSinEventos"
+              Text="Sin eventos para este día"
+              FontSize="12"
+              Foreground="{DynamicResource Color4}"
+              HorizontalAlignment="Center"
+              Margin="0,5"
+              Visibility="Collapsed"
+            />
+          </StackPanel>
+        </ScrollViewer>
       </Border>
     </Popup>
   </Grid>

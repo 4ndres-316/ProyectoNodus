@@ -77,6 +77,16 @@ namespace Proyecto_Boletos.vistas
             {
                 var response = await ConexionDB.Client.From<Evento>().Get();
                 _eventos = response.Models;
+
+                // Normalizar estado_evento por si tiene comillas/cast sobrantes de la BD
+                foreach (var ev in _eventos)
+                {
+                    ev.EstadoEvento = ev.EstadoEvento
+                        .Replace("'", "")
+                        .Replace("::character varying", "")
+                        .Trim();
+                }
+
                 RenderizarCalendario();
             }
             catch (Exception ex)
@@ -309,12 +319,16 @@ namespace Proyecto_Boletos.vistas
 
         private void btnIrReservas_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(
-                "Navegar a Reservas",
-                "Reservas",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
+            var ventana = new CreacionReserva(_idUsuario);
+            ventana.Owner = Window.GetWindow(this);
+            ventana.ShowDialog();
+
+            // Recargar al volver — en el dispatcher para no mezclar threads
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await CargarFechasEventos();
+                await CargarEventos();
+            });
         }
 
         private void btnAgregarEvento_Click(object sender, RoutedEventArgs e)

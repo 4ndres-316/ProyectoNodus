@@ -12,7 +12,7 @@ namespace Proyecto_Boletos.Db
     public class Recinto : BaseModel
     {
         [PrimaryKey("id_recinto")]
-        public int IdRecinto { get; set; }
+        public long IdRecinto { get; set; }
 
         [Column("id_ciudad")]
         public int? IdCiudad { get; set; }
@@ -37,6 +37,9 @@ namespace Proyecto_Boletos.Db
 
         [Column("link_ubicacion")]
         public string LinkUbicacion { get; set; } = string.Empty;
+
+        [Column("precio_hora")]
+        public long PrecioHora { get; set; }
 
         public string NombreCiudad { get; set; } = string.Empty;
     }

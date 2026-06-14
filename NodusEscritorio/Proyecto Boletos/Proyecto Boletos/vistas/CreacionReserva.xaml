@@ -6,10 +6,11 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   mc:Ignorable="d"
   Title="Crear Reserva"
+  Loaded="Window_Loaded"
   Height="500"
   Width="700"
   WindowStartupLocation="CenterScreen"
-  ResizeMode="CanResizeWithGrip"
+  ResizeMode="NoResize"
   Icon="/Logo_Nodus.png"
   Background="{DynamicResource Color3}"
 >
@@ -72,9 +73,9 @@
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-              <RowDefinition Height="Auto" />
               <RowDefinition Height="Auto" />
               <RowDefinition Height="Auto" />
               <RowDefinition Height="Auto" />
@@ -88,31 +89,44 @@
                 Style="{StaticResource ComboStyle}"
                 DisplayMemberPath="NombreDepartamento"
                 SelectedValuePath="IdDepartamento"
+                SelectionChanged="cmbDepartamento_SelectionChanged"
               />
             </StackPanel>
 
-            <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,0">
+            <StackPanel Grid.Row="0" Grid.Column="1" Margin="5,0">
               <TextBlock Text="Ciudad" Style="{StaticResource LabelStyle}" />
               <ComboBox
                 x:Name="cmbCiudad"
                 Style="{StaticResource ComboStyle}"
                 DisplayMemberPath="NombreCiudad"
                 SelectedValuePath="IdCiudad"
+                SelectionChanged="cmbCiudad_SelectionChanged"
               />
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+            <StackPanel Grid.Row="0" Grid.Column="2" Margin="10,0,0,0">
               <TextBlock Text="Recinto" Style="{StaticResource LabelStyle}" />
               <ComboBox
                 x:Name="cmbRecinto"
                 Style="{StaticResource ComboStyle}"
                 DisplayMemberPath="NombreRecinto"
                 SelectedValuePath="IdRecinto"
+                SelectionChanged="cmbRecinto_SelectionChanged"
+              />
+            </StackPanel>
+
+            <!-- Nombre Reserva -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+              <TextBlock Text="Nombre Reservante" Style="{StaticResource LabelStyle}" />
+              <TextBox
+                x:Name="txtNombreReservante"
+                Style="{StaticResource InputStyle}"
+                TextChanged="Fecha_TextChanged"
               />
             </StackPanel>
 
             <!-- Disponibilidad -->
-            <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Bottom">
+            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Bottom">
               <Border x:Name="bdDisponibilidad" CornerRadius="4" Padding="8,6" Background="#ECECEC">
                 <TextBlock
                   x:Name="txtDisponibilidad"
@@ -125,13 +139,13 @@
             </StackPanel>
 
             <!-- Fecha inicio -->
-            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0">
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0">
               <TextBlock Text="Fecha Inicio" Style="{StaticResource LabelStyle}" />
               <DatePicker x:Name="dpFechaInicio" Padding="5" SelectedDateChanged="Fecha_Changed" />
             </StackPanel>
 
             <!-- Hora inicio -->
-            <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,0">
+            <StackPanel Grid.Row="1" Grid.Column="2" Margin="10,0,0,0">
               <TextBlock Text="Hora Inicio (Ej: 18:30)" Style="{StaticResource LabelStyle}" />
               <TextBox
                 x:Name="txtHoraInicio"
@@ -141,13 +155,13 @@
             </StackPanel>
 
             <!-- Fecha fin -->
-            <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,10,0">
+            <StackPanel Grid.Row="2" Grid.Column="1" Margin="5,0">
               <TextBlock Text="Fecha Fin" Style="{StaticResource LabelStyle}" />
               <DatePicker x:Name="dpFechaFin" Padding="5" SelectedDateChanged="Fecha_Changed" />
             </StackPanel>
 
             <!-- Hora fin -->
-            <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,0">
+            <StackPanel Grid.Row="2" Grid.Column="2" Margin="10,0,0,0">
               <TextBlock Text="Hora Fin (Ej: 22:00)" Style="{StaticResource LabelStyle}" />
               <TextBox
                 x:Name="txtHoraFin"
@@ -155,51 +169,43 @@
                 TextChanged="Fecha_TextChanged"
               />
             </StackPanel>
-
-            <!-- Botones -->
           </Grid>
-          <Border Grid.Row="2" BorderBrush="#EEEEEE" BorderThickness="0,1,0,0" Padding="20,0">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-              </Grid.ColumnDefinitions>
-              <TextBlock
-                x:Name="txtEstadoGuardado"
-                Grid.Column="0"
-                VerticalAlignment="Center"
-                Foreground="#888"
-                FontSize="12"
-              />
-              <Button
-                Grid.Column="1"
-                Content="Cancelar"
-                x:Name="btnCancelar"
-                Width="100"
-                Height="36"
-                Margin="5,0"
-                Background="{DynamicResource Color2}"
-                Foreground="White"
-                BorderBrush="{DynamicResource Color2}"
-                Click="btnCancelar_Click"
-              />
-              <Button
-                Grid.Column="2"
-                Content="Guardar Evento"
-                x:Name="btnGuardar"
-                Width="130"
-                Height="36"
-                Margin="5,0"
-                Background="{DynamicResource Color1}"
-                Foreground="White"
-                BorderBrush="{DynamicResource Color1}"
-                Click="btnGuardar_Click"
-              />
-            </Grid>
-          </Border>
         </StackPanel>
       </Border>
     </ScrollViewer>
+    <!-- Botones -->
+    <Border Grid.Row="2" BorderBrush="#EEEEEE" BorderThickness="0,1,0,0" Padding="20,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Button
+          Grid.Column="1"
+          Content="Cancelar"
+          x:Name="btnCancelar"
+          Width="100"
+          Height="36"
+          Margin="5,0"
+          Background="{DynamicResource Color2}"
+          Foreground="White"
+          BorderBrush="{DynamicResource Color2}"
+          Click="btnCancelar_Click"
+        />
+        <Button
+          Grid.Column="2"
+          Content="Guardar Reserva"
+          x:Name="btnGuardar"
+          Width="130"
+          Height="36"
+          Margin="5,0"
+          Background="{DynamicResource Color1}"
+          Foreground="White"
+          BorderBrush="{DynamicResource Color1}"
+          Click="btnGuardar_Click"
+        />
+      </Grid>
+    </Border>
   </Grid>
 </Window>

@@ -173,9 +173,16 @@ namespace Proyecto_Boletos.vistas
                 }
                 else
                 {
+                    if (!long.TryParse(txtNitProveedor.Text.Trim(), out long nit))
+                    {
+                        MessageBox.Show("El NIT debe ser un número válido.", "Validación",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
                     var nuevo = new Proveedor
                     {
-                        NitProveedor = txtNitProveedor.Text.Trim(),
+                        NitProveedor = nit,
                         NombreComercial = txtNombreComercial.Text.Trim(),
                         TelefonoComercial = txtTelefonoComercial.Text.Trim(),
                         IdCiudad = idCiudad,
