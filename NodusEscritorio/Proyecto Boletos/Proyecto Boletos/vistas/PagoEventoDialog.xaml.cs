@@ -1,12 +1,12 @@
-﻿using Proyecto_Boletos.Db;
-using QRCoder;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using Proyecto_Boletos.Db;
+using QRCoder;
 
 namespace Proyecto_Boletos.vistas
 {
@@ -42,30 +42,31 @@ namespace Proyecto_Boletos.vistas
             _metodosPago = metodosPago ?? new List<MetodoPago>();
 
             _desglose = new List<LineaDesglose>
-        {
-            new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto }
-        };
+            {
+                new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto },
+            };
 
-            MostrarDesglose();
             CargarMetodosPago();
         }
 
         // Constructor para evento — costo recinto + servicios
-        public PagoEventoDialog(List<MetodoPago> metodosPago, decimal costoRecinto,
-                                 List<LineaDesglose> servicios)
+        public PagoEventoDialog(
+            List<MetodoPago> metodosPago,
+            decimal costoRecinto,
+            List<LineaDesglose> servicios
+        )
         {
             InitializeComponent();
             _metodosPago = metodosPago ?? new List<MetodoPago>();
 
             _desglose = new List<LineaDesglose>
-        {
-            new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto }
-        };
+            {
+                new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto },
+            };
 
             if (servicios != null)
                 _desglose.AddRange(servicios);
 
-            MostrarDesglose();
             CargarMetodosPago();
         }
 
@@ -74,31 +75,25 @@ namespace Proyecto_Boletos.vistas
         {
             InitializeComponent();
             _metodosPago = metodosPago ?? new List<MetodoPago>();
-            pnlDesglose.Visibility = Visibility.Collapsed;
             CargarMetodosPago();
-        }
-
-        private void MostrarDesglose()
-        {
-            lstDesglose.ItemsSource = _desglose;
-            decimal total = _desglose.Sum(d => d.Monto);
-            txtTotal.Text = $"Bs {total:F2}";
-            Monto = total;
-            txtMonto.Text = total.ToString("F2");
         }
 
         private void CargarMetodosPago()
         {
             // Buscar métodos de pago Efectivo y QR entre los disponibles
             var efectivo = _metodosPago.FirstOrDefault(m =>
-                m.Nombre.IndexOf("Efectivo", StringComparison.OrdinalIgnoreCase) >= 0);
+                m.Nombre.IndexOf("Efectivo", StringComparison.OrdinalIgnoreCase) >= 0
+            );
             var qr = _metodosPago.FirstOrDefault(m =>
-                m.Nombre.IndexOf("QR", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                m.Nombre.IndexOf("Qr", StringComparison.OrdinalIgnoreCase) >= 0);
+                m.Nombre.IndexOf("QR", StringComparison.OrdinalIgnoreCase) >= 0
+                || m.Nombre.IndexOf("Qr", StringComparison.OrdinalIgnoreCase) >= 0
+            );
 
             // Si no hay métodos específicos, usar los primeros disponibles
-            if (efectivo == null && _metodosPago.Count > 0) efectivo = _metodosPago[0];
-            if (qr == null && _metodosPago.Count > 1) qr = _metodosPago[1];
+            if (efectivo == null && _metodosPago.Count > 0)
+                efectivo = _metodosPago[0];
+            if (qr == null && _metodosPago.Count > 1)
+                qr = _metodosPago[1];
 
             if (efectivo != null)
                 btnEfectivo.Tag = efectivo;
@@ -106,8 +101,10 @@ namespace Proyecto_Boletos.vistas
                 btnQR.Tag = qr;
 
             // Ocultar botón QR si no existe
-            if (qr == null) btnQR.Visibility = Visibility.Collapsed;
-            if (efectivo == null) btnEfectivo.Visibility = Visibility.Collapsed;
+            if (qr == null)
+                btnQR.Visibility = Visibility.Collapsed;
+            if (efectivo == null)
+                btnEfectivo.Visibility = Visibility.Collapsed;
         }
 
         private void btnEfectivo_Click(object sender, RoutedEventArgs e)
@@ -142,15 +139,23 @@ namespace Proyecto_Boletos.vistas
         {
             if (_metodoPagoActivo == null)
             {
-                MessageBox.Show("Selecciona un método de pago (Efectivo o QR).",
-                    "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Selecciona un método de pago (Efectivo o QR).",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 
             if (!decimal.TryParse(txtMonto.Text, out decimal monto) || monto <= 0)
             {
-                MessageBox.Show("Ingresa un monto válido mayor a 0.",
-                    "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Ingresa un monto válido mayor a 0.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 

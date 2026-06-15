@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +12,8 @@ namespace Proyecto_Boletos.vistas
     {
         private List<Proveedor> _proveedores;
         private List<Ciudad> _ciudades;
+        private List<Servicio> _servicios;
+        private List<ProveedorServicio> _proveedorServicios;
         private Proveedor _proveedorSeleccionado;
         private bool _modoEdicion = false;
         private int _idRol;
@@ -20,37 +23,26 @@ namespace Proyecto_Boletos.vistas
             InitializeComponent();
             _idRol = idRol;
 
-            // Solo el Administrador (rol 1) ve el botón Proveedores Web
-            if (_idRol == 1)
-                //btnVistaAdmin.Visibility = Visibility.Visible;
-
-                btnNuevo.Click += btnNuevo_Click;
-            btnGuardar.Click += btnGuardar_Click;
-            /*btnEditar.Click += btnEditar_Click;
-            btnEliminar.Click += btnEliminar_Click;*/
-            btnCancelar.Click += btnCancelar_Click;
-            dgProveedores.SelectionChanged += dgProveedores_SelectionChanged;
-
             Loaded += async (s, e) =>
             {
                 await CargarCiudades();
+                await CargarServicios();
                 await CargarProveedores();
             };
+
+            txtBuscar.TextChanged += txtBuscar_TextChanged;
         }
 
-        // Solo para el diseñador de Visual Studio
         public ProveedoresView()
             : this(0) { }
 
-        // ---------------------------------------------------------------
-        // Carga de datos
-        // ---------------------------------------------------------------
+        // ─── CARGA ───────────────────────────────────────────────────────────
+
         private async Task CargarCiudades()
         {
             try
             {
-                var response = await ConexionDB.Client.From<Ciudad>().Get();
-                _ciudades = response.Models;
+                _ciudades = (await ConexionDB.Client.From<Ciudad>().Get()).Models;
                 cmbCiudad.ItemsSource = _ciudades;
             }
             catch (Exception ex)
@@ -64,12 +56,58 @@ namespace Proyecto_Boletos.vistas
             }
         }
 
+        private async Task CargarServicios()
+        {
+            try
+            {
+                _servicios = (await ConexionDB.Client.From<Servicio>().Get()).Models;
+
+                cmbServicio.ItemsSource = _servicios;
+                cmbServicio.DisplayMemberPath = "NombreServicio";
+                cmbServicio.SelectedValuePath = "IdServicio";
+
+                _proveedorServicios = (
+                    await ConexionDB.Client.From<ProveedorServicio>().Get()
+                ).Models;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar servicios: {ex.Message}");
+            }
+        }
+
         private async Task CargarProveedores()
         {
             try
             {
-                var response = await ConexionDB.Client.From<Proveedor>().Get();
-                _proveedores = response.Models;
+                _proveedores = (await ConexionDB.Client.From<Proveedor>().Get()).Models;
+
+                foreach (var p in _proveedores)
+                {
+                    // Nombre ciudad
+                    var ciudad = _ciudades?.Find(c => c.IdCiudad == p.IdCiudad);
+                    p.NombreCiudad = ciudad?.NombreCiudad ?? string.Empty;
+
+                    // Servicios con precio desde proveedor_servicio
+                    if (_proveedorServicios != null && _servicios != null)
+                    {
+                        var psDelProveedor = _proveedorServicios
+                            .Where(ps => ps.IdProveedor == p.NitProveedor)
+                            .ToList();
+
+                        var partes = psDelProveedor
+                            .Select(ps =>
+                            {
+                                var servicio = _servicios.Find(s => s.IdServicio == ps.IdServicio);
+                                return $"{servicio?.NombreServicio ?? ps.IdServicio.ToString()} — Bs {ps.Precio}";
+                            })
+                            .ToList();
+
+                        p.ServiciosConPrecio =
+                            partes.Count > 0 ? string.Join(" | ", partes) : "Sin servicios";
+                    }
+                }
+
                 dgProveedores.ItemsSource = _proveedores;
             }
             catch (Exception ex)
@@ -83,47 +121,47 @@ namespace Proyecto_Boletos.vistas
             }
         }
 
-        // ---------------------------------------------------------------
-        // Botón Vista General
-        // ---------------------------------------------------------------
-        private void btnVistaCompartida_Click(object sender, RoutedEventArgs e)
+        // ─── BUSCADOR ────────────────────────────────────────────────────────
+
+        private void txtBuscar_TextChanged(object sender, TextChangedEventArgs e)
         {
-            //panelGeneral.Visibility = Visibility.Visible;
+            if (_proveedores == null)
+                return;
+
+            var texto = (txtBuscar.Text ?? "").Trim().ToLower();
+
+            if (string.IsNullOrEmpty(texto))
+            {
+                dgProveedores.ItemsSource = _proveedores;
+                return;
+            }
+
+            dgProveedores.ItemsSource = _proveedores
+                .Where(p =>
+                    (p.NombreComercial ?? "").ToLower().Contains(texto)
+                    || (p.TelefonoComercial ?? "").ToLower().Contains(texto)
+                    || (p.NombreCiudad ?? "").ToLower().Contains(texto)
+                    || (p.EstadoProveedor ?? "").ToLower().Contains(texto)
+                    || (p.ServiciosConPrecio ?? "").ToLower().Contains(texto)
+                    || p.NitProveedor.ToString().Contains(texto)
+                )
+                .ToList();
         }
 
-        // ---------------------------------------------------------------
-        // Botón Proveedores Web — abre nueva ventana
-        // ---------------------------------------------------------------
-        private void btnVistaAdmin_Click(object sender, RoutedEventArgs e)
-        {
-            var ventanaWeb = new ProveedoresWebView();
-            ventanaWeb.ShowDialog();
-        }
+        // ─── SELECCIÓN ───────────────────────────────────────────────────────
 
-        // ---------------------------------------------------------------
-        // Selección en DataGrid
-        // ---------------------------------------------------------------
         private void dgProveedores_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (dgProveedores.SelectedItem != null)
-            {
-                _proveedorSeleccionado = dgProveedores.SelectedItem as Proveedor;
-            }
-            else
-            {
-                _proveedorSeleccionado = null;
-            }
+            _proveedorSeleccionado = dgProveedores.SelectedItem as Proveedor;
         }
 
-        // ---------------------------------------------------------------
-        // CRUD
-        // ---------------------------------------------------------------
+        // ─── CRUD ─────────────────────────────────────────────────────────────
+
         private void btnNuevo_Click(object sender, RoutedEventArgs e)
         {
             LimpiarFormulario();
             HabilitarFormulario(true);
             _modoEdicion = false;
-
             btnGuardar.IsEnabled = true;
             btnCancelar.IsEnabled = true;
             btnNuevo.IsEnabled = false;
@@ -131,13 +169,21 @@ namespace Proyecto_Boletos.vistas
 
         private async void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (
-                string.IsNullOrWhiteSpace(txtNitProveedor.Text)
-                || string.IsNullOrWhiteSpace(txtNombreComercial.Text)
-            )
+            if (string.IsNullOrWhiteSpace(txtNombreComercial.Text))
             {
                 MessageBox.Show(
-                    "El NIT y el nombre comercial son obligatorios.",
+                    "El nombre comercial es obligatorio.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtTelefonoComercial.Text))
+            {
+                MessageBox.Show(
+                    "El teléfono comercial es obligatorio.",
                     "Validación",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning
@@ -156,8 +202,47 @@ namespace Proyecto_Boletos.vistas
                 return;
             }
 
-            int idCiudad = (int)cmbCiudad.SelectedValue;
+            if (cmbEstadoProveedor.SelectedItem == null)
+            {
+                MessageBox.Show(
+                    "Debe seleccionar un estado.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
 
+            long nit = 0;
+            if (!_modoEdicion)
+            {
+                if (string.IsNullOrWhiteSpace(txtNitProveedor.Text))
+                {
+                    MessageBox.Show(
+                        "El NIT es obligatorio.",
+                        "Validación",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+                    return;
+                }
+
+                if (!long.TryParse(txtNitProveedor.Text.Trim(), out nit))
+                {
+                    MessageBox.Show(
+                        "El NIT debe ser un número válido.",
+                        "Validación",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+                    return;
+                }
+            }
+
+            int? idCiudad =
+                cmbCiudad.SelectedValue != null
+                    ? (int?)Convert.ToInt32(cmbCiudad.SelectedValue)
+                    : null;
             try
             {
                 if (_modoEdicion)
@@ -170,16 +255,26 @@ namespace Proyecto_Boletos.vistas
                     ).Content.ToString();
 
                     await ConexionDB.Client.From<Proveedor>().Update(_proveedorSeleccionado);
+
+                    var relacion = _proveedorServicios.FirstOrDefault(x =>
+                        x.IdProveedor == _proveedorSeleccionado.NitProveedor
+                    );
+
+                    if (relacion != null)
+                    {
+                        relacion.IdServicio = (int)(long)cmbServicio.SelectedValue;
+
+                        long precio = 0;
+
+                        long.TryParse(txtPrecioProveedor.Text, out precio);
+
+                        relacion.Precio = precio;
+
+                        await ConexionDB.Client.From<ProveedorServicio>().Update(relacion);
+                    }
                 }
                 else
                 {
-                    if (!long.TryParse(txtNitProveedor.Text.Trim(), out long nit))
-                    {
-                        MessageBox.Show("El NIT debe ser un número válido.", "Validación",
-                            MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-
                     var nuevo = new Proveedor
                     {
                         NitProveedor = nit,
@@ -192,16 +287,30 @@ namespace Proyecto_Boletos.vistas
                     };
 
                     await ConexionDB.Client.From<Proveedor>().Insert(nuevo);
+
+                    if (cmbServicio.SelectedValue != null)
+                    {
+                        long precio = 0;
+
+                        long.TryParse(txtPrecioProveedor.Text, out precio);
+
+                        var proveedorServicio = new ProveedorServicio
+                        {
+                            IdProveedor = nit,
+                            IdServicio = (int)(long)cmbServicio.SelectedValue,
+                            Precio = precio,
+                        };
+
+                        await ConexionDB.Client.From<ProveedorServicio>().Insert(proveedorServicio);
+                    }
                 }
 
                 await CargarProveedores();
                 LimpiarFormulario();
                 HabilitarFormulario(false);
-
                 btnGuardar.IsEnabled = false;
                 btnCancelar.IsEnabled = false;
                 btnNuevo.IsEnabled = true;
-                dgProveedores.IsEnabled = true;
 
                 MessageBox.Show(
                     "Proveedor guardado exitosamente.",
@@ -223,73 +332,92 @@ namespace Proyecto_Boletos.vistas
 
         private void btnEditar_Click(object sender, RoutedEventArgs e)
         {
+            if ((sender as Button)?.Tag is Proveedor p)
+                _proveedorSeleccionado = p;
+
             if (_proveedorSeleccionado == null)
                 return;
 
             txtNitProveedor.Text = _proveedorSeleccionado.NitProveedor.ToString();
             txtNombreComercial.Text = _proveedorSeleccionado.NombreComercial;
             txtTelefonoComercial.Text = _proveedorSeleccionado.TelefonoComercial;
-
-            // Seleccionar la ciudad correcta en el ComboBox
             cmbCiudad.SelectedValue = _proveedorSeleccionado.IdCiudad;
 
-            foreach (ComboBoxItem item in cmbEstadoProveedor.Items)
+            var relacion = _proveedorServicios?.FirstOrDefault(x =>
+                x.IdProveedor == _proveedorSeleccionado.NitProveedor
+            );
+
+            if (relacion != null)
             {
+                cmbServicio.SelectedValue = relacion.IdServicio;
+
+                txtPrecioProveedor.Text = relacion.Precio.ToString();
+            }
+
+            foreach (ComboBoxItem item in cmbEstadoProveedor.Items)
                 if (item.Content.ToString() == _proveedorSeleccionado.EstadoProveedor)
                 {
                     cmbEstadoProveedor.SelectedItem = item;
                     break;
                 }
-            }
 
             HabilitarFormulario(true);
             _modoEdicion = true;
-
             btnGuardar.IsEnabled = true;
             btnCancelar.IsEnabled = true;
             btnNuevo.IsEnabled = false;
         }
 
-        private async void btnEliminar_Click(object sender, RoutedEventArgs e)
+        private async void btnDeshabilitar_Click(object sender, RoutedEventArgs e)
         {
+            if ((sender as Button)?.Tag is Proveedor p)
+                _proveedorSeleccionado = p;
+
             if (_proveedorSeleccionado == null)
                 return;
 
+            if (_proveedorSeleccionado.EstadoProveedor == "Inactivo")
+            {
+                MessageBox.Show(
+                    "El proveedor ya está inactivo.",
+                    "Aviso",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+                return;
+            }
+
             var resultado = MessageBox.Show(
-                $"¿Estás seguro de eliminar el proveedor '{_proveedorSeleccionado.NombreComercial}'?",
+                $"¿Deshabilitar a '{_proveedorSeleccionado.NombreComercial}'? Su estado cambiará a Inactivo.",
                 "Confirmar",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question
             );
 
-            if (resultado == MessageBoxResult.Yes)
+            if (resultado != MessageBoxResult.Yes)
+                return;
+
+            try
             {
-                try
-                {
-                    await ConexionDB
-                        .Client.From<Proveedor>()
-                        .Where(x => x.NitProveedor == _proveedorSeleccionado.NitProveedor)
-                        .Delete();
+                _proveedorSeleccionado.EstadoProveedor = "Inactivo";
+                await ConexionDB.Client.From<Proveedor>().Update(_proveedorSeleccionado);
+                await CargarProveedores();
 
-                    await CargarProveedores();
-                    LimpiarFormulario();
-
-                    MessageBox.Show(
-                        "Proveedor eliminado.",
-                        "Éxito",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(
-                        $"Error: {ex.Message}",
-                        "Error",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                }
+                MessageBox.Show(
+                    "Proveedor deshabilitado.",
+                    "Éxito",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -297,7 +425,6 @@ namespace Proyecto_Boletos.vistas
         {
             LimpiarFormulario();
             HabilitarFormulario(false);
-
             btnGuardar.IsEnabled = false;
             btnCancelar.IsEnabled = false;
             btnNuevo.IsEnabled = true;
@@ -305,15 +432,17 @@ namespace Proyecto_Boletos.vistas
             _modoEdicion = false;
         }
 
-        // ---------------------------------------------------------------
-        // Helpers
-        // ---------------------------------------------------------------
+        // ─── HELPERS ─────────────────────────────────────────────────────────
+
         private void LimpiarFormulario()
         {
             txtNitProveedor.Clear();
             txtNombreComercial.Clear();
             txtTelefonoComercial.Clear();
+            txtPrecioProveedor.Clear();
+
             cmbCiudad.SelectedIndex = -1;
+            cmbServicio.SelectedIndex = -1;
             cmbEstadoProveedor.SelectedIndex = 0;
         }
 

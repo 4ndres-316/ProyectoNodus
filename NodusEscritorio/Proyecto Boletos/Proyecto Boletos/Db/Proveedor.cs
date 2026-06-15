@@ -15,7 +15,7 @@ namespace Proyecto_Boletos.Db
         public long NitProveedor { get; set; }
 
         [Column("id_ciudad")]
-        public int IdCiudad { get; set; }
+        public int? IdCiudad { get; set; }
 
         [Column("nombre_comercial")]
         public string NombreComercial { get; set; } = string.Empty;
@@ -26,6 +26,11 @@ namespace Proyecto_Boletos.Db
         [Column("estado_proveedor")]
         public string EstadoProveedor { get; set; } = string.Empty;
 
+        // Ignorar en insert y update
+        [Column("nombre_ciudad", ignoreOnInsert: true, ignoreOnUpdate: true)]
         public string NombreCiudad { get; set; } = string.Empty;
+
+        [Column("servicios_con_precio", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public string ServiciosConPrecio { get; set; } = string.Empty;
     }
 }

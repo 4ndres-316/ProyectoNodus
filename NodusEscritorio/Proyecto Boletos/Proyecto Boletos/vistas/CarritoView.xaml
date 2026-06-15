@@ -89,14 +89,7 @@
     >
       <DataGrid
         x:Name="dgVentas"
-        AutoGenerateColumns="True"
-        IsReadOnly="True"
-        SelectionMode="Single"
-        CanUserAddRows="False"
-        CanUserDeleteRows="False"
-        HeadersVisibility="Column"
-        GridLinesVisibility="Horizontal"
-        AlternatingRowBackground="#F5F5F5"
+        Style="{StaticResource ModernDataGridStyle}"
       ></DataGrid>
     </Border>
   </Grid>
