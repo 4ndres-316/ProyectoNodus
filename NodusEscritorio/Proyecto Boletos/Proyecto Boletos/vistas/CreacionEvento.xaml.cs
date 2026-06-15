@@ -350,7 +350,6 @@ namespace Proyecto_Boletos.vistas
                                 IdEvento = idEvento,
                                 IdServicio = fila.IdServicioSeleccionado.Value,
                                 Cantidad = fila.Cantidad,
-                                PrecioAcordado = fila.PrecioAcordado,
                                 EstadoEventoServicio = "pendiente",
                             }
                         );

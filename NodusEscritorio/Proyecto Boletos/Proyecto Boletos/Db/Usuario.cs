@@ -15,7 +15,7 @@ namespace Proyecto_Boletos.Db
         [Column("nombre_usuario")]
         public string NombreUsuario { get; set; } = string.Empty;
 
-        [Column("email_usuario")]
+        [Column("correo")]
         public string EmailUsuario { get; set; } = string.Empty;
 
         [Column("telefono")]

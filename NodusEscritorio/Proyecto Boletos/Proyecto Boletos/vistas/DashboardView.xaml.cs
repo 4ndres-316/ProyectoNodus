@@ -36,22 +36,16 @@ namespace Proyecto_Boletos.vistas
             try
             {
                 // 1. USUARIOS ACTIVOS
-                var responseUsuarios = await ConexionDB
-                    .Client.From<Usuario>()
+                var responseUsuarios = await ConexionDB.Client.From<Usuario>()
                     .Filter("estado_usuario", Supabase.Postgrest.Constants.Operator.Equals, "Activo")
                     .Get();
                 txtUsuariosActivos.Text = responseUsuarios.Models.Count.ToString();
 
                 // 2. EVENTOS + FECHAS + RECINTOS
-                var responseEventos  = await ConexionDB.Client.From<Evento>().Get();
-                var responseFechas   = await ConexionDB.Client.From<FechaEvento>().Get();
-                var responseRecintos = await ConexionDB.Client.From<Recinto>().Get();
+                var eventos  = (await ConexionDB.Client.From<Evento>().Get()).Models;
+                var fechas   = (await ConexionDB.Client.From<FechaEvento>().Get()).Models;
+                var recintos = (await ConexionDB.Client.From<Recinto>().Get()).Models;
 
-                var eventos  = responseEventos.Models;
-                var fechas   = responseFechas.Models;
-                var recintos = responseRecintos.Models;
-
-                // Normalizar estado por si la BD trae valores con comillas/cast
                 foreach (var ev in eventos)
                 {
                     ev.EstadoEvento = ev.EstadoEvento
@@ -60,26 +54,26 @@ namespace Proyecto_Boletos.vistas
                         .Trim();
                 }
 
-                var eventosConFecha = eventos
+                var estadosActivos = new[] { "Programado", "En espera", "Pagado" };
+
+                // Solo eventos con estado activo cuya fecha de inicio aún no ha llegado
+                var eventosActivos = eventos
                     .Select(ev => new
                     {
                         Evento      = ev,
                         FechaEvento = fechas.Find(f => f.Id == ev.IdFechaEvento),
                     })
-                    .Where(x => x.FechaEvento != null)
+                    .Where(x => x.FechaEvento != null
+                             && estadosActivos.Contains(x.Evento.EstadoEvento)
+                             && x.FechaEvento.FechaInicio.Date > DateTime.Today)
+                    .OrderBy(x => x.FechaEvento.FechaInicio)
                     .ToList();
 
-                // 3. TOTAL EVENTOS PROGRAMADOS
-                txtTotalEventos.Text = eventosConFecha
-                    .Count(x => x.Evento.EstadoEvento == "Programado"
-                             || x.Evento.EstadoEvento == "En espera"
-                             || x.Evento.EstadoEvento == "Pagado")
-                    .ToString();
+                // 3. CONTADOR — solo eventos aún no iniciados
+                txtTotalEventos.Text = eventosActivos.Count.ToString();
 
-                // 4. PRÓXIMOS EVENTOS
-                var proximosEventos = eventosConFecha
-                    .Where(x => x.FechaEvento.FechaInicio.Date >= DateTime.Today)
-                    .OrderBy(x => x.FechaEvento.FechaInicio)
+                // 4. GRID DE EVENTOS ACTIVOS
+                dgProximosEventos.ItemsSource = eventosActivos
                     .Select(x =>
                     {
                         var recinto = recintos.Find(r => r.IdRecinto == x.Evento.IdRecinto);
@@ -88,26 +82,44 @@ namespace Proyecto_Boletos.vistas
                             Fecha   = x.FechaEvento.FechaInicio.ToString("dd/MM/yyyy"),
                             Hora    = x.FechaEvento.HoraInicio.ToString(@"hh\:mm"),
                             Nombre  = x.Evento.NombreEvento,
-                            Recinto = recinto?.NombreRecinto ?? x.Evento.IdRecinto.ToString(),
+                            Recinto = recinto?.NombreRecinto ?? "-",
                             Estado  = x.Evento.EstadoEvento,
                         };
                     })
                     .ToList();
 
-                dgProximosEventos.ItemsSource = proximosEventos;
-
-                // 5. BOLETOS VENDIDOS e INGRESOS
+                // 5. VENTAS — detalle_orden + orden + boleto
                 try
                 {
-                    var responseBoletos = await ConexionDB.Client.From<Boleto>().Get();
-                    var boletos = responseBoletos.Models;
-                    var vendidos = boletos.Where(b =>
-                        b.EstadoBoleto == "vendido" ||
-                        b.EstadoBoleto == "usado" ||
-                        b.EstadoBoleto == "pagado").ToList();
+                    var detalles = (await ConexionDB.Client.From<DetalleOrden>().Get()).Models;
+                    var ordenes  = (await ConexionDB.Client.From<Orden>().Get()).Models;
+                    var boletos  = (await ConexionDB.Client.From<Boleto>().Get()).Models;
 
-                    txtBoletosVendidos.Text = vendidos.Count.ToString();
-                    txtIngresos.Text = $"BS {vendidos.Sum(b => b.PrecioBoleto):N0}";
+                    txtBoletosVendidos.Text = detalles.Count.ToString();
+                    txtIngresos.Text = $"BS {detalles.Sum(d => d.PrecioUnitario * d.Cantidad):N0}";
+
+                    var ventas = detalles
+                        .Select(d =>
+                        {
+                            var orden  = ordenes.Find(o => o.IdOrden == d.IdOrden);
+                            var boleto = boletos.Find(b => b.IdBoleto == d.IdBoleto);
+                            var evNombre = boleto != null
+                                ? (eventos.Find(ev => ev.IdEvento == (int)boleto.IdEvento)?.NombreEvento ?? "-")
+                                : "-";
+                            return new VentaDashboard
+                            {
+                                _fechaOrden = orden?.FechaOrden ?? DateTime.MinValue,
+                                Fecha      = orden?.FechaOrden.ToString("dd/MM/yyyy HH:mm") ?? "-",
+                                Evento     = evNombre,
+                                TipoBoleto = boleto?.TipoBoleto ?? "-",
+                                Precio     = $"BS {d.PrecioUnitario:N0}",
+                                Comprador  = string.IsNullOrEmpty(orden?.CompradorNombre) ? "-" : orden.CompradorNombre,
+                            };
+                        })
+                        .OrderByDescending(v => v._fechaOrden)
+                        .ToList();
+
+                    dgVentas.ItemsSource = ventas;
                 }
                 catch
                 {
@@ -125,5 +137,15 @@ namespace Proyecto_Boletos.vistas
                 );
             }
         }
+    }
+
+    public class VentaDashboard
+    {
+        public DateTime _fechaOrden { get; set; }
+        public string Fecha      { get; set; } = string.Empty;
+        public string Evento     { get; set; } = string.Empty;
+        public string TipoBoleto { get; set; } = string.Empty;
+        public string Precio     { get; set; } = string.Empty;
+        public string Comprador  { get; set; } = string.Empty;
     }
 }

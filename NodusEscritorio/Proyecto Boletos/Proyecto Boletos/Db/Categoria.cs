@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Proyecto_Boletos.Db
 {
-    [Table("categoria")]
+    [Table("categoria_servicio")]
     public class Categoria : BaseModel
     {
         [PrimaryKey("id_categoria")]

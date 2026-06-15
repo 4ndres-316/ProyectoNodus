@@ -15,10 +15,7 @@ namespace Proyecto_Boletos.Db
         public int IdBoleto { get; set; }
 
         [Column("id_evento")]
-        public int IdEvento { get; set; }
-
-        [Column("id_orden")]
-        public int IdOrden { get; set; }
+        public long IdEvento { get; set; }
 
         [Column("codigo")]
         public string Codigo { get; set; } = string.Empty;
@@ -32,10 +29,10 @@ namespace Proyecto_Boletos.Db
         [Column("tipo_boleto")]
         public string TipoBoleto { get; set; } = string.Empty;
 
+        [Column("estado_validacion")]
+        public string EstadoValidacion { get; set; } = string.Empty;
+
         [Column("precio_boleto")]
         public decimal PrecioBoleto { get; set; }
-
-        [Column("estado_boleto")]
-        public string EstadoBoleto { get; set; } = string.Empty;
     }
 }

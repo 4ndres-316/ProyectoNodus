@@ -17,19 +17,19 @@ namespace Proyecto_Boletos.Db
         [Column("id_evento")]
         public int IdEvento { get; set; }
 
-        [Column("nombre_tipo_boleto")]
+        [Column("nombre_tipo")]
         public string NombreTipoBoleto { get; set; } = string.Empty;
 
         [Column("precio")]
         public decimal Precio { get; set; }
 
         [Column("cantidad_total")]
-        public int CantidadTotal { get; set; }
+        public long CantidadTotal { get; set; }
 
         [Column("cantidad_disponible")]
-        public int CantidadDisponible { get; set; }
+        public long CantidadDisponible { get; set; }
 
-        [Column("url_imagen")]
+        [Column("imagen_url")]
         public string UrlImagen { get; set; } = string.Empty;
 
         [Column("descripcion")]

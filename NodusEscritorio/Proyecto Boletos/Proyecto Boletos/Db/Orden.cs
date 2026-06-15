@@ -25,5 +25,17 @@ namespace Proyecto_Boletos.Db
 
         [Column("descuento_orden")]
         public decimal DescuentoOrden { get; set; }
+
+        [Column("comprador_nombre")]
+        public string CompradorNombre { get; set; } = string.Empty;
+
+        [Column("comprador_celular")]
+        public string CompradorCelular { get; set; } = string.Empty;
+
+        [Column("comprador_correo")]
+        public string CompradorCorreo { get; set; } = string.Empty;
+
+        [Column("comprador_nit")]
+        public string CompradorNit { get; set; } = string.Empty;
     }
 }

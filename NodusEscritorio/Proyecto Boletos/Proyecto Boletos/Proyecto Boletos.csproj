@@ -151,6 +151,7 @@
     <Compile Include="Db\Cotizacion.cs" />
     <Compile Include="Db\Departamento.cs" />
     <Compile Include="Db\DetalleOrden.cs" />
+    <Compile Include="Db\DetalleProveedorServicio.cs" />
     <Compile Include="Db\Evento.cs" />
     <Compile Include="Db\EventoServicio.cs" />
     <Compile Include="Db\FechaEvento.cs" />

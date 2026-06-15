@@ -21,10 +21,7 @@ namespace Proyecto_Boletos.Db
         public int IdServicio { get; set; }
 
         [Column("cantidad")]
-        public int Cantidad { get; set; } = 1;
-
-        [Column("precio_acordado")]
-        public int PrecioAcordado { get; set; }
+        public long Cantidad { get; set; } = 1;
 
         [Column("estado_evento_servicio")]
         public string EstadoEventoServicio { get; set; } = string.Empty;

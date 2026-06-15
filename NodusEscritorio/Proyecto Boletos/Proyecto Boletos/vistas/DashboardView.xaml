@@ -235,7 +235,7 @@
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
           <TextBlock
-            Text="Próximos Eventos"
+            Text="Eventos Activos"
             FontSize="18"
             FontWeight="Bold"
             Foreground="{DynamicResource Color1}"
@@ -280,22 +280,33 @@
           </Grid.RowDefinitions>
 
           <TextBlock
-            Text="Estado de Ventas"
+            Text="Actividad de Ventas"
             FontSize="18"
             FontWeight="Bold"
             Foreground="{DynamicResource Color1}"
-            Margin="0,0,0,20"
+            Margin="0,0,0,15"
           />
 
-          <StackPanel x:Name="panelEstadoVentas" Grid.Row="1" Margin="0,0,0,15">
-            <TextBlock
-              Text="Sin datos de ventas aún"
-              FontStyle="Italic"
-              Foreground="Gray"
-              HorizontalAlignment="Center"
-              Margin="0,20,0,0"
-            />
-          </StackPanel>
+          <DataGrid
+            x:Name="dgVentas"
+            Grid.Row="1"
+            AutoGenerateColumns="False"
+            IsReadOnly="True"
+            HeadersVisibility="Column"
+            GridLinesVisibility="None"
+            RowBackground="Transparent"
+            Background="Transparent"
+            BorderThickness="0"
+            FontSize="12"
+          >
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha}" Width="110" />
+              <DataGridTextColumn Header="Evento" Binding="{Binding Evento}" Width="*" />
+              <DataGridTextColumn Header="Tipo" Binding="{Binding TipoBoleto}" Width="70" />
+              <DataGridTextColumn Header="Precio" Binding="{Binding Precio}" Width="70" />
+              <DataGridTextColumn Header="Comprador" Binding="{Binding Comprador}" Width="*" />
+            </DataGrid.Columns>
+          </DataGrid>
         </Grid>
       </Border>
     </Grid>

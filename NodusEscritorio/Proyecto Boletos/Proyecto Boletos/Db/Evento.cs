@@ -38,6 +38,12 @@ namespace Proyecto_Boletos.Db
         public string NombreReservante { get; set; } = string.Empty;
 
         [Column("id_reserva")]
-        public int? IdReserva { get; set; }
+        public long? IdReserva { get; set; }
+
+        [Column("descuento")]
+        public long Descuento { get; set; }
+
+        [Column("tope_reserva")]
+        public long TopeReserva { get; set; }
     }
 }
