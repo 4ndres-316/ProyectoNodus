@@ -1,0 +1,224 @@
+<Window
+  x:Class="Proyecto_Boletos.vistas.EditarEventoDialog"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Editar Evento"
+  Height="620" Width="900"
+  WindowStartupLocation="CenterOwner"
+  ResizeMode="CanResizeWithGrip"
+  Icon="/Logo_Nodus.png"
+  Background="{DynamicResource Color3}"
+  Loaded="Window_Loaded"
+>
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- TITULO -->
+    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+      <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="20"
+                 Foreground="{DynamicResource Color1}" VerticalAlignment="Center" Margin="0,0,8,0" />
+      <TextBlock x:Name="txtTituloEvento" FontSize="20" FontWeight="Bold"
+                 Foreground="{DynamicResource Color1}" />
+    </StackPanel>
+
+    <!-- TABS -->
+    <TabControl Grid.Row="1">
+
+      <!-- TAB EVENTO -->
+      <TabItem Header="  Datos del Evento  ">
+        <Border Background="White" Padding="20">
+          <StackPanel MaxWidth="500" HorizontalAlignment="Left">
+
+            <TextBlock Text="Nombre del evento" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+            <TextBox x:Name="txtNombre" Padding="8,7" Margin="0,0,0,14" FontSize="13" />
+
+            <TextBlock Text="Nombre del reservante / cliente" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+            <TextBox x:Name="txtReservante" Padding="8,7" Margin="0,0,0,14" FontSize="13" />
+
+            <Grid Margin="0,0,0,14">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="80" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="80" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="Fecha inicio" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+                <DatePicker x:Name="dpFechaInicio" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Hora inicio" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+                <TextBox x:Name="txtHoraInicio" Padding="6,7" TextAlignment="Center" />
+              </StackPanel>
+              <StackPanel Grid.Column="4">
+                <TextBlock Text="Fecha fin" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+                <DatePicker x:Name="dpFechaFin" />
+              </StackPanel>
+              <StackPanel Grid.Column="6">
+                <TextBlock Text="Hora fin" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+                <TextBox x:Name="txtHoraFin" Padding="6,7" TextAlignment="Center" />
+              </StackPanel>
+            </Grid>
+
+            <TextBlock Text="Estado del evento" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+            <ComboBox x:Name="cmbEstado" Padding="8,7" Margin="0,0,0,14" FontSize="13" Height="36">
+              <ComboBoxItem Content="Confirmado" />
+              <ComboBoxItem Content="Programado" />
+              <ComboBoxItem Content="En espera" />
+              <ComboBoxItem Content="Cancelado" />
+              <ComboBoxItem Content="Suspendido" />
+              <ComboBoxItem Content="Reprogramado" />
+            </ComboBox>
+
+            <CheckBox x:Name="chkEsPublico" Content="Evento publico (visible en la web y app movil)"
+                      FontSize="13" Margin="0,0,0,14" />
+
+            <TextBlock Text="Max. invitados (0 = sin limite)" FontSize="11" Foreground="#555" Margin="0,0,0,4" />
+            <TextBox x:Name="txtMaxInvitados" Padding="8,7" Width="100"
+                     HorizontalAlignment="Left" TextAlignment="Center" FontSize="13" />
+          </StackPanel>
+        </Border>
+      </TabItem>
+
+      <!-- TAB RECINTO -->
+      <TabItem Header="  Recinto  ">
+        <Border Background="White">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Background="{DynamicResource Color1}" Padding="14,10">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Recinto actual: " Foreground="White" FontSize="13" />
+                <TextBlock x:Name="txtRecintoActual" Foreground="White" FontSize="13" FontWeight="Bold" />
+                <TextBlock Text="  |  Selecciona uno nuevo para reemplazarlo."
+                           Foreground="#CCFFFFFF" FontSize="12" VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+            <ListView x:Name="lvRecintos" Grid.Row="1" BorderThickness="0" Background="Transparent">
+              <ListView.View>
+                <GridView>
+                  <GridViewColumn Header="Nombre" Width="200" DisplayMemberBinding="{Binding NombreRecinto}" />
+                  <GridViewColumn Header="Tipo" Width="110" DisplayMemberBinding="{Binding TipoRecinto}" />
+                  <GridViewColumn Header="Capacidad" Width="80" DisplayMemberBinding="{Binding Capacidad}" />
+                  <GridViewColumn Header="Precio / hr" Width="100" DisplayMemberBinding="{Binding PrecioFormateado}" />
+                  <GridViewColumn Header="" Width="130">
+                    <GridViewColumn.CellTemplate>
+                      <DataTemplate>
+                        <Button Content="Seleccionar" Tag="{Binding}"
+                                Height="26" Padding="8,0" FontSize="11"
+                                Background="{DynamicResource Color1}" Foreground="White"
+                                BorderBrush="{DynamicResource Color1}" Cursor="Hand"
+                                Click="btnSeleccionarRecinto_Click" />
+                      </DataTemplate>
+                    </GridViewColumn.CellTemplate>
+                  </GridViewColumn>
+                </GridView>
+              </ListView.View>
+            </ListView>
+          </Grid>
+        </Border>
+      </TabItem>
+
+      <!-- TAB SERVICIOS -->
+      <TabItem Header="  Servicios del Evento  ">
+        <Border Background="White">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="260" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Catalogo de servicios -->
+            <Grid Grid.Column="0">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="42" />
+                <RowDefinition Height="*" />
+              </Grid.RowDefinitions>
+              <Border Background="{DynamicResource Color1}" Padding="10,6">
+                <TextBox x:Name="txtBuscarServicio" Padding="6,4" VerticalAlignment="Center"
+                         Background="White" TextChanged="txtBuscarServicio_TextChanged" />
+              </Border>
+              <ListView x:Name="lvCatalogo" Grid.Row="1" BorderThickness="0" Background="Transparent">
+                <ListView.View>
+                  <GridView>
+                    <GridViewColumn Header="Servicio" Width="130" DisplayMemberBinding="{Binding NombreServicio}" />
+                    <GridViewColumn Header="Item" Width="150" DisplayMemberBinding="{Binding NombreItem}" />
+                    <GridViewColumn Header="Precio" Width="80" DisplayMemberBinding="{Binding PrecioFormateado}" />
+                    <GridViewColumn Header="" Width="100">
+                      <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                          <Button Content="+ Agregar" Tag="{Binding}"
+                                  Height="24" Padding="6,0" FontSize="11"
+                                  Background="{DynamicResource Color1}" Foreground="White"
+                                  BorderBrush="{DynamicResource Color1}" Cursor="Hand"
+                                  Click="btnAgregarServicio_Click" />
+                        </DataTemplate>
+                      </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                  </GridView>
+                </ListView.View>
+              </ListView>
+            </Grid>
+
+            <!-- Servicios actuales del evento -->
+            <Border Grid.Column="2" BorderBrush="{DynamicResource Color1}"
+                    BorderThickness="1,0,0,0" Background="White">
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="42" />
+                  <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border Background="{DynamicResource Color1}" Padding="12,0">
+                  <TextBlock Text="Servicios del evento" Foreground="White"
+                             FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" />
+                </Border>
+                <ListView x:Name="lvServiciosEvento" Grid.Row="1"
+                          BorderThickness="0" Background="Transparent">
+                  <ListView.View>
+                    <GridView>
+                      <GridViewColumn Header="Servicio" Width="130" DisplayMemberBinding="{Binding NombreServicio}" />
+                      <GridViewColumn Header="Cant." Width="40" DisplayMemberBinding="{Binding Cantidad}" />
+                      <GridViewColumn Header="" Width="68">
+                        <GridViewColumn.CellTemplate>
+                          <DataTemplate>
+                            <Button Content="Quitar" Tag="{Binding}"
+                                    Height="24" Padding="4,0" FontSize="10"
+                                    Background="#F44336" Foreground="White"
+                                    BorderBrush="#F44336" Cursor="Hand"
+                                    Click="btnQuitarServicio_Click" />
+                          </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                      </GridViewColumn>
+                    </GridView>
+                  </ListView.View>
+                </ListView>
+              </Grid>
+            </Border>
+          </Grid>
+        </Border>
+      </TabItem>
+    </TabControl>
+
+    <!-- FOOTER -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+      <Button Content="Cancelar" Width="100" Height="36" Margin="0,0,10,0"
+              IsCancel="True" Background="White" Foreground="{DynamicResource Color1}"
+              BorderBrush="{DynamicResource Color1}" Cursor="Hand"
+              Click="btnCancelar_Click" />
+      <Button Content="Guardar Cambios" Width="150" Height="36"
+              Background="{DynamicResource Color1}" Foreground="White"
+              BorderBrush="{DynamicResource Color1}" FontWeight="SemiBold"
+              Cursor="Hand" Click="btnGuardar_Click" />
+    </StackPanel>
+  </Grid>
+</Window>

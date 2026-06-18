@@ -305,6 +305,7 @@
               <DataGridTextColumn Header="Tipo" Binding="{Binding TipoBoleto}" Width="70" />
               <DataGridTextColumn Header="Precio" Binding="{Binding Precio}" Width="70" />
               <DataGridTextColumn Header="Comprador" Binding="{Binding Comprador}" Width="*" />
+              <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="80" />
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

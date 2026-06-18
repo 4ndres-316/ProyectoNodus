@@ -15,19 +15,19 @@ namespace Proyecto_Boletos.Db
         public int IdContrato { get; set; }
 
         [Column("id_proveedor")]
-        public string IdProveedor { get; set; } = string.Empty;
+        public long? IdProveedor { get; set; }
 
         [Column("id_evento")]
-        public int IdEvento { get; set; }
+        public int? IdEvento { get; set; }
 
         [Column("tipo_contrato")]
         public string TipoContrato { get; set; } = string.Empty;
 
         [Column("monto_contrato")]
-        public decimal MontoContrato { get; set; }
+        public decimal? MontoContrato { get; set; }
 
         [Column("fecha_contrato")]
-        public DateTime FechaContrato { get; set; }
+        public DateTime? FechaContrato { get; set; }
 
         [Column("estado_contrato")]
         public string EstadoContrato { get; set; } = string.Empty;

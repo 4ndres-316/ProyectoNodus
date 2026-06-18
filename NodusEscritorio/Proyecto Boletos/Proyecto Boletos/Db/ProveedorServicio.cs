@@ -19,8 +19,5 @@ namespace Proyecto_Boletos.Db
 
         [Column("id_servicio")]
         public int IdServicio { get; set; }
-
-        [Column("precio")]
-        public long Precio { get; set; }
     }
 }

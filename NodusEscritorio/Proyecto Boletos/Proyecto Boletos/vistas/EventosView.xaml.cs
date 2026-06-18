@@ -17,19 +17,26 @@ namespace Proyecto_Boletos.vistas
         private List<Recinto> _recintos;
         private List<FechaEvento> _fechasEventos;
         private int _idUsuario;
+        private string _nombreUsuario;
+        private List<MetodoPago> _metodosPago = new List<MetodoPago>();
         private DateTime _mesActual = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-        public EventosView(int idUsuario)
+        public EventosView(int idUsuario, string nombreUsuario)
         {
             InitializeComponent();
             _idUsuario = idUsuario;
+            _nombreUsuario = nombreUsuario;
         }
+
+        public EventosView(int idUsuario)
+            : this(idUsuario, string.Empty) { }
 
         public EventosView()
             : this(0) { }
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            try { _metodosPago = (await ConexionDB.Client.From<MetodoPago>().Get()).Models; } catch { }
             await CargarRecintos();
             await CargarFechasEventos();
             await CargarEventos();
@@ -276,6 +283,10 @@ namespace Proyecto_Boletos.vistas
 
             foreach (var ev in _eventos)
             {
+                // No mostrar en el calendario eventos que aún no concretaron su venta/pago
+                if (string.Equals(ev.EstadoEvento?.Trim(), "En espera", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 var recinto = _recintos?.Find(r => r.IdRecinto == ev.IdRecinto);
                 var fechaEvento = _fechasEventos?.Find(f => f.Id == ev.IdFechaEvento);
 
@@ -315,74 +326,92 @@ namespace Proyecto_Boletos.vistas
             RenderizarCalendario();
         }
 
-        // ─── BOTONES SUPERIORES ───
-
-        private void btnIrReservas_Click(object sender, RoutedEventArgs e)
+        private async void BtnCancelar_Click(object sender, RoutedEventArgs e)
         {
-            var ventana = new CreacionReserva(_idUsuario);
-            ventana.Owner = Window.GetWindow(this);
-            ventana.ShowDialog();
+            if (!(sender is Button btn) || !(btn.Tag is EventoVista evVista))
+                return;
 
-            // Recargar al volver — en el dispatcher para no mezclar threads
-            Dispatcher.InvokeAsync(async () =>
+            var resultado = MessageBox.Show(
+                $"¿Cancelar el evento '{evVista.NombreEvento}'?",
+                "Confirmar cancelación",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
+            if (resultado != MessageBoxResult.Yes)
+                return;
+
+            try
             {
-                await CargarFechasEventos();
-                await CargarEventos();
-            });
-        }
-
-        private void btnAgregarEvento_Click(object sender, RoutedEventArgs e)
-        {
-            var ventana = new CreacionEvento(_idUsuario, "nombre_del_usuario");
-            ventana.Owner = Window.GetWindow(this);
-            ventana.ShowDialog();
-
-            // Recargar al volver — en el dispatcher para no mezclar threads
-            Dispatcher.InvokeAsync(async () =>
-            {
-                await CargarFechasEventos();
-                await CargarEventos();
-            });
-        }
-
-        /*private async void BtnCancelar_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn &&
-                btn.Tag is Evento evento)
-            {
-                var resultado = MessageBox.Show(
-                    $"¿Cancelar '{evento.NombreEvento}'?",
-                    "Confirmar",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
-
-                if (resultado != MessageBoxResult.Yes)
+                var ev = _eventos?.Find(x => x.IdEvento == evVista.IdEvento);
+                if (ev == null)
                     return;
 
-                evento.EstadoEvento = "Cancelado";
+                ev.EstadoEvento = "Cancelado";
+                await ConexionDB.Client.From<Evento>().Update(ev);
 
-                await SupabaseService.Client
-                    .From<Evento>()
-                    .Update(evento);
+                popupEventosDia.IsOpen = false;
 
-                CargarEventos();
+                await CargarFechasEventos();
+                await CargarEventos();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al cancelar: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        private void btnCrearEvento_Click(object sender, RoutedEventArgs e)
+        {
+            var ventana = new NuevoPedidoDialog(_idUsuario, _metodosPago);
+            ventana.Owner = Window.GetWindow(this);
+            bool? result = ventana.ShowDialog();
+
+            if (result == true)
+            {
+                Dispatcher.InvokeAsync(async () =>
+                {
+                    await CargarFechasEventos();
+                    await CargarEventos();
+                });
             }
         }
 
         private void BtnReprogramar_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn &&
-                btn.Tag is Evento evento)
+            if (!(sender is Button btn) || !(btn.Tag is EventoVista evVista))
+                return;
+
+            var ev = _eventos?.Find(x => x.IdEvento == evVista.IdEvento);
+            var fechaEv = _fechasEventos?.Find(f => f.Id == ev?.IdFechaEvento);
+
+            if (ev == null || fechaEv == null)
             {
-                evento.EstadoEvento = "Reprogramado";
-
-                var ventana = new vistas.CreacionEvento(evento);
-
-                ventana.ShowDialog();
-
-                CargarEventos();
+                MessageBox.Show(
+                    "No se encontraron los datos del evento.",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
             }
-        }*/
+
+            popupEventosDia.IsOpen = false;
+
+            /*var ventana = new NuevoPedidoDialog(_idUsuarioAdmin, _metodosPago, cliente);
+            ventana.Owner = Window.GetWindow(this);
+            ventana.ShowDialog();*/
+
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await CargarFechasEventos();
+                await CargarEventos();
+            });
+        }
     }
 
     public class EventoVista

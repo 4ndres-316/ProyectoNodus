@@ -20,20 +20,24 @@ namespace Proyecto_Boletos.vistas
         private List<Servicio> _servicios;
         private List<Proveedor> _proveedores;
         private List<ProveedorServicio> _proveedorServicios;
+        private List<DetalleProveedorServicio> _detalles;
 
         private ComboBox _cmbCategoria;
         private ComboBox _cmbServicio;
         private ComboBox _cmbProveedor;
+        private ComboBox _cmbItem;
         private TextBox _txtCantidad;
         private TextBox _txtPrecio;
         private TextBlock _txtInfoProveedor;
 
         public FilaServicio(List<Servicio> servicios, List<Proveedor> proveedores,
-                            List<ProveedorServicio> proveedorServicios)
+                            List<ProveedorServicio> proveedorServicios,
+                            List<DetalleProveedorServicio> detalles = null)
         {
             _servicios = servicios;
             _proveedores = proveedores;
             _proveedorServicios = proveedorServicios;
+            _detalles = detalles ?? new List<DetalleProveedorServicio>();
 
             // Agrupar categorías por NombreCategoria (ya cruzado en CargarDatos)
             var categorias = servicios
@@ -71,6 +75,16 @@ namespace Proyecto_Boletos.vistas
                 IsEnabled = false
             };
             _cmbProveedor.SelectionChanged += CmbProveedor_Changed;
+
+            _cmbItem = new ComboBox
+            {
+                Margin = new Thickness(0, 0, 8, 0),
+                Padding = new Thickness(5),
+                MinWidth = 150,
+                DisplayMemberPath = "NombreItem",
+                IsEnabled = false
+            };
+            _cmbItem.SelectionChanged += CmbItem_Changed;
 
             _txtInfoProveedor = new TextBlock
             {
@@ -133,6 +147,7 @@ namespace Proyecto_Boletos.vistas
             Lbl("Categoría:"); fila.Children.Add(_cmbCategoria);
             Lbl("Servicio:");   fila.Children.Add(_cmbServicio);
             Lbl("Proveedor:");  fila.Children.Add(_cmbProveedor);
+            Lbl("Ítem:");       fila.Children.Add(_cmbItem);
             fila.Children.Add(_txtInfoProveedor);
             Lbl("Cant:");       fila.Children.Add(_txtCantidad);
             Lbl("Precio Bs:");  fila.Children.Add(_txtPrecio);
@@ -158,6 +173,8 @@ namespace Proyecto_Boletos.vistas
             _cmbServicio.SelectedIndex = -1;
             _cmbProveedor.ItemsSource = null;
             _cmbProveedor.IsEnabled = false;
+            _cmbItem.ItemsSource = null;
+            _cmbItem.IsEnabled = false;
             _txtInfoProveedor.Text = "";
             IdServicioSeleccionado = null;
         }
@@ -182,6 +199,8 @@ namespace Proyecto_Boletos.vistas
             _cmbProveedor.ItemsSource = proveedoresFiltrados;
             _cmbProveedor.IsEnabled = proveedoresFiltrados.Count > 0;
             _cmbProveedor.SelectedIndex = -1;
+            _cmbItem.ItemsSource = null;
+            _cmbItem.IsEnabled = false;
             _txtInfoProveedor.Text = proveedoresFiltrados.Count == 0 ? "Sin proveedor" : "";
         }
 
@@ -190,14 +209,28 @@ namespace Proyecto_Boletos.vistas
             var proveedor = _cmbProveedor.SelectedItem as Proveedor;
             if (proveedor == null) return;
 
-            var ps = _proveedorServicios.FirstOrDefault(x =>
-                x.IdProveedor == proveedor.NitProveedor &&
-                x.IdServicio == IdServicioSeleccionado);
+            var items = _detalles
+                .Where(d => d.IdProveedor == proveedor.NitProveedor &&
+                            d.IdServicio == IdServicioSeleccionado)
+                .ToList();
 
-            long precio = ps != null ? ps.Precio : 0;
-            PrecioAcordado = (int)precio;
-            _txtPrecio.Text = precio.ToString();
-            _txtInfoProveedor.Text = $"Bs {precio}";
+            _cmbItem.ItemsSource = items;
+            _cmbItem.IsEnabled = items.Count > 0;
+            _cmbItem.SelectedIndex = -1;
+
+            _txtPrecio.Text = "";
+            PrecioAcordado = 0;
+            _txtInfoProveedor.Text = items.Count == 0 ? "Sin ítems registrados" : "";
+        }
+
+        private void CmbItem_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var item = _cmbItem.SelectedItem as DetalleProveedorServicio;
+            if (item == null) return;
+
+            PrecioAcordado = (int)item.PrecioItem;
+            _txtPrecio.Text = item.PrecioItem.ToString();
+            _txtInfoProveedor.Text = $"Bs {item.PrecioItem}";
         }
 
         public bool EstaCompleta()

@@ -11,7 +11,7 @@ namespace Proyecto_Boletos.Db
     [Table("proveedor")]
     public class Proveedor : BaseModel
     {
-        [PrimaryKey("nit_proveedor")]
+        [PrimaryKey("nit_proveedor", true)]
         public long NitProveedor { get; set; }
 
         [Column("id_ciudad")]

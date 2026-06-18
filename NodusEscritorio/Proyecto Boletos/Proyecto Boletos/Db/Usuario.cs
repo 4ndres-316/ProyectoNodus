@@ -1,4 +1,5 @@
-﻿using Supabase.Postgrest.Attributes;
+﻿using Newtonsoft.Json;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
 namespace Proyecto_Boletos.Db
@@ -33,6 +34,7 @@ namespace Proyecto_Boletos.Db
         [Column("foto_rostro")]
         public string FotoRostro { get; set; } = string.Empty;
 
+        [JsonIgnore]
         public Rol Rol { get; set; }
     }
 }

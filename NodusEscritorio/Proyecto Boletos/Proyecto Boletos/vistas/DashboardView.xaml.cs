@@ -37,7 +37,7 @@ namespace Proyecto_Boletos.vistas
             {
                 // 1. USUARIOS ACTIVOS
                 var responseUsuarios = await ConexionDB.Client.From<Usuario>()
-                    .Filter("estado_usuario", Supabase.Postgrest.Constants.Operator.Equals, "Activo")
+                    .Filter("estado_usuario", Supabase.Postgrest.Constants.Operator.ILike, "activo")
                     .Get();
                 txtUsuariosActivos.Text = responseUsuarios.Models.Count.ToString();
 
@@ -54,7 +54,7 @@ namespace Proyecto_Boletos.vistas
                         .Trim();
                 }
 
-                var estadosActivos = new[] { "Programado", "En espera", "Pagado" };
+                var estadosActivos = new[] { "Programado", "En espera" };
 
                 // Solo eventos con estado activo cuya fecha de inicio aún no ha llegado
                 var eventosActivos = eventos
@@ -95,8 +95,15 @@ namespace Proyecto_Boletos.vistas
                     var ordenes  = (await ConexionDB.Client.From<Orden>().Get()).Models;
                     var boletos  = (await ConexionDB.Client.From<Boleto>().Get()).Models;
 
-                    txtBoletosVendidos.Text = detalles.Count.ToString();
-                    txtIngresos.Text = $"BS {detalles.Sum(d => d.PrecioUnitario * d.Cantidad):N0}";
+                    bool EsPagado(string estado) =>
+                        string.Equals(estado?.Trim(), "pagado", StringComparison.OrdinalIgnoreCase);
+
+                    var detallesPagados = detalles
+                        .Where(d => EsPagado(ordenes.Find(o => o.IdOrden == d.IdOrden)?.EstadoOrden))
+                        .ToList();
+
+                    txtBoletosVendidos.Text = detallesPagados.Count.ToString();
+                    txtIngresos.Text = $"BS {detallesPagados.Sum(d => d.PrecioUnitario * d.Cantidad):N0}";
 
                     var ventas = detalles
                         .Select(d =>
@@ -104,8 +111,9 @@ namespace Proyecto_Boletos.vistas
                             var orden  = ordenes.Find(o => o.IdOrden == d.IdOrden);
                             var boleto = boletos.Find(b => b.IdBoleto == d.IdBoleto);
                             var evNombre = boleto != null
-                                ? (eventos.Find(ev => ev.IdEvento == (int)boleto.IdEvento)?.NombreEvento ?? "-")
+                                ? (eventos.Find(ev => ev.IdEvento == (int)(boleto.IdEvento ?? 0))?.NombreEvento ?? "-")
                                 : "-";
+                            bool pagado = EsPagado(orden?.EstadoOrden);
                             return new VentaDashboard
                             {
                                 _fechaOrden = orden?.FechaOrden ?? DateTime.MinValue,
@@ -114,6 +122,7 @@ namespace Proyecto_Boletos.vistas
                                 TipoBoleto = boleto?.TipoBoleto ?? "-",
                                 Precio     = $"BS {d.PrecioUnitario:N0}",
                                 Comprador  = string.IsNullOrEmpty(orden?.CompradorNombre) ? "-" : orden.CompradorNombre,
+                                Estado     = pagado ? "Pagado" : "Pendiente",
                             };
                         })
                         .OrderByDescending(v => v._fechaOrden)
@@ -137,6 +146,7 @@ namespace Proyecto_Boletos.vistas
                 );
             }
         }
+
     }
 
     public class VentaDashboard
@@ -147,5 +157,6 @@ namespace Proyecto_Boletos.vistas
         public string TipoBoleto { get; set; } = string.Empty;
         public string Precio     { get; set; } = string.Empty;
         public string Comprador  { get; set; } = string.Empty;
+        public string Estado     { get; set; } = string.Empty;
     }
 }

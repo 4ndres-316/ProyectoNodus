@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Proyecto_Boletos.Db
 {
     [Table("tipo_boleto")]
-    internal class TipoBoleto: BaseModel
+    public class TipoBoleto : BaseModel
     {
         [PrimaryKey("id")]
         public int IdTipoBoleto { get; set; }

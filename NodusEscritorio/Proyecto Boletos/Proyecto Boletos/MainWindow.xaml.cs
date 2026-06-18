@@ -1,19 +1,11 @@
 ﻿using Proyecto_Boletos.Db;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static System.Net.WebRequestMethods;
 
 namespace Proyecto_Boletos
 {
@@ -94,7 +86,9 @@ namespace Proyecto_Boletos
                     return;
                 }
 
-                if (resultado.Password != contrasena)
+                bool contrasenaValida = VerificarContrasena(contrasena, resultado.Password, usuario);
+
+                if (!contrasenaValida)
                 {
                     MessageBox.Show(
                         "Contraseña incorrecta.",
@@ -107,14 +101,27 @@ namespace Proyecto_Boletos
                     return;
                 }
 
-                if (resultado.IdRol == 3)
+                // Cargar el rol desde la base de datos
+                var roles = (await ConexionDB.Client.From<Rol>()
+                    .Where(r => r.IdRol == resultado.IdRol)
+                    .Get()).Models;
+                var rolActual = roles.FirstOrDefault();
+                string nombreRol = rolActual?.Nombre?.Trim() ?? "";
+
+                if (string.IsNullOrEmpty(nombreRol) ||
+                    string.Equals(nombreRol, "Cliente", StringComparison.OrdinalIgnoreCase))
                 {
                     MessageBox.Show(
-                        $"Usuario: {usuario}\nNo tiene acceso al sistema.",
+                        $"Bienvenido, {resultado.NombreUsuario}.\n\n" +
+                        $"Este panel es exclusivo para Administradores y Organizadores.\n" +
+                        $"Su rol ({(string.IsNullOrEmpty(nombreRol) ? "sin rol asignado" : nombreRol)}) " +
+                        $"no tiene acceso al sistema administrativo.",
                         "Acceso Denegado",
                         MessageBoxButton.OK,
-                        MessageBoxImage.Exclamation
+                        MessageBoxImage.Warning
                     );
+                    pbPassword.Clear();
+                    tbUser.Focus();
                     return;
                 }
 
@@ -138,7 +145,7 @@ namespace Proyecto_Boletos
                     return;
                 }
 
-                new Window1(resultado).Show();
+                new Window1(resultado, rolActual).Show();
                 this.Close();
             }
             catch (Exception ex)
@@ -164,6 +171,26 @@ namespace Proyecto_Boletos
         private void btnCambio_Click(object sender, RoutedEventArgs e)
         {
             Tema.CambiarTema();
+        }
+
+        private static bool VerificarContrasena(string ingresada, string guardada, string username)
+        {
+            if (string.IsNullOrEmpty(guardada)) return false;
+
+            // SHA-256 de "username:password" (formato de la app movil)
+            if (guardada.Length == 64)
+            {
+                using (var sha = SHA256.Create())
+                {
+                    var input = $"{username}:{ingresada}";
+                    var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
+                    var hash = BitConverter.ToString(bytes).Replace("-", "").ToLower();
+                    return hash == guardada.ToLower();
+                }
+            }
+
+            // Texto plano (usuarios admin/organizador sin hash)
+            return ingresada == guardada;
         }
 
         private void btnMostrar_Click(object sender, RoutedEventArgs e)

@@ -14,7 +14,7 @@ namespace Proyecto_Boletos.Db
         public int IdOrganizador { get; set; }
 
         [Column("id_recinto")]
-        public int IdRecinto { get; set; }
+        public int? IdRecinto { get; set; }
 
         [Column("fecha")]
         public int IdFechaEvento { get; set; }
@@ -41,9 +41,9 @@ namespace Proyecto_Boletos.Db
         public long? IdReserva { get; set; }
 
         [Column("descuento")]
-        public long Descuento { get; set; }
+        public long? Descuento { get; set; }
 
         [Column("tope_reserva")]
-        public long TopeReserva { get; set; }
+        public long? TopeReserva { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace Proyecto_Boletos.Db
         public int IdOrden { get; set; }
 
         [Column("id_boleto")]
-        public int IdBoleto { get; set; }
+        public int? IdBoleto { get; set; }
 
         [Column("cantidad")]
         public int Cantidad { get; set; }

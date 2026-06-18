@@ -11,19 +11,19 @@ namespace Proyecto_Boletos.Db
     [Table("media")]
     public class Media : BaseModel
     {
-        [PrimaryKey("id_media")]
-        public int IdMedia { get; set; }
+        [PrimaryKey("id")]
+        public int Id { get; set; }
 
-        [Column("fecha_creacion")]
-        public DateTime FechaCreacion { get; set; }
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
 
         [Column("url")]
         public string Url { get; set; } = string.Empty;
 
         [Column("orden")]
-        public int Orden { get; set; }
+        public int? Orden { get; set; }
 
         [Column("id_evento")]
-        public int IdEvento { get; set; }
+        public int? IdEvento { get; set; }
     }
 }

@@ -35,8 +35,8 @@ namespace Proyecto_Boletos.Db
 
             _cliente = new Client(Url, Key, new SupabaseOptions
             {
-                AutoConnectRealtime = true,
-                AutoRefreshToken = true
+                AutoConnectRealtime = false,
+                AutoRefreshToken = false
             });
 
             await _cliente.InitializeAsync();

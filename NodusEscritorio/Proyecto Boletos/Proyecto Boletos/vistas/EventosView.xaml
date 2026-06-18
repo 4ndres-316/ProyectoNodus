@@ -21,7 +21,6 @@
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
-
       <StackPanel Orientation="Horizontal" Margin="0 0 0 20">
         <TextBlock
           Text="Gestión de Eventos"
@@ -38,33 +37,18 @@
           Margin="10 5 0 0"
         />
       </StackPanel>
-
-      <!-- Botones superiores -->
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0 0 0 20">
-        <Button
-          x:Name="btnIrReservas"
-          Content="📋 Reservas"
-          Width="120"
-          Height="35"
-          Margin="5"
-          Background="{DynamicResource Color2}"
-          Foreground="White"
-          BorderBrush="{DynamicResource Color2}"
-          Click="btnIrReservas_Click"
-        />
-
-        <Button
-          x:Name="btnAgregarEvento"
-          Content="➕ Agregar Evento"
-          Width="140"
-          Height="35"
-          Margin="5"
-          Background="{DynamicResource Color1}"
-          Foreground="White"
-          BorderBrush="{DynamicResource Color1}"
-          Click="btnAgregarEvento_Click"
-        />
-      </StackPanel>
+      <Button
+        x:Name="btnCrearEvento"
+        Grid.Column="1"
+        Content="+ Crear Evento"
+        Height="34"
+        Padding="14,0"
+        VerticalAlignment="Top"
+        Background="{DynamicResource Color1}"
+        Foreground="White"
+        BorderBrush="{DynamicResource Color1}"
+        Click="btnCrearEvento_Click"
+      />
     </Grid>
 
     <!-- CALENDARIO -->
@@ -252,6 +236,7 @@
                           Foreground="White"
                           BorderBrush="{DynamicResource Color1}"
                           Tag="{Binding}"
+                          Click="BtnReprogramar_Click"
                         />
                         <Button
                           Content="Cancelar"
@@ -262,6 +247,7 @@
                           Foreground="White"
                           BorderBrush="#F44336"
                           Tag="{Binding}"
+                          Click="BtnCancelar_Click"
                         />
                       </StackPanel>
                     </StackPanel>

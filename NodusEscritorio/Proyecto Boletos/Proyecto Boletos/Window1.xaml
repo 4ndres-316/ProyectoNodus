@@ -113,6 +113,19 @@
               </StackPanel>
             </Button>
             <Button
+              x:Name="btnClientes"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Visibility="Collapsed"
+              Click="btnClientes_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE77B;"
+                           FontSize="15" VerticalAlignment="Center" Foreground="White" />
+                <TextBlock Text="Clientes" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
               x:Name="btnUsuarios"
               Style="{DynamicResource SidebarButtonStyle}"
               Margin="0,5"
@@ -218,6 +231,44 @@
                   Foreground="White"
                 />
                 <TextBlock Text="Carrito" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnMonitoreoWeb"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Visibility="Collapsed"
+              Click="btnMonitoreoWeb_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE774;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Monitor Web" Margin="10 0" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="btnMonitoreoMovil"
+              Style="{DynamicResource SidebarButtonStyle}"
+              Margin="0,5"
+              Visibility="Collapsed"
+              Click="btnMonitoreoMovil_Click"
+            >
+              <StackPanel Orientation="Horizontal">
+                <TextBlock
+                  FontFamily="Segoe MDL2 Assets"
+                  Text="&#xE8EA;"
+                  FontSize="15"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Foreground="White"
+                />
+                <TextBlock Text="Monitor Movil" Margin="10 0" />
               </StackPanel>
             </Button>
           </StackPanel>

@@ -48,7 +48,7 @@
             </Grid>
           </Border>
 
-          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden">
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel x:Name="panelCatalogo" Margin="0,4,4,0" />
           </ScrollViewer>
         </Grid>

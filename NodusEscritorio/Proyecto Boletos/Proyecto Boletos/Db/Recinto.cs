@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
@@ -15,7 +11,7 @@ namespace Proyecto_Boletos.Db
         public long IdRecinto { get; set; }
 
         [Column("id_ciudad")]
-        public int? IdCiudad { get; set; }
+        public long? IdCiudad { get; set; }
 
         [Column("nombre_recinto")]
         public string NombreRecinto { get; set; } = string.Empty;
@@ -41,6 +37,10 @@ namespace Proyecto_Boletos.Db
         [Column("precio_hora")]
         public long PrecioHora { get; set; }
 
+        [Column("imagen_url")]
+        public string ImagenUrl { get; set; } = string.Empty;
+
+        [JsonIgnore]
         public string NombreCiudad { get; set; } = string.Empty;
     }
 }

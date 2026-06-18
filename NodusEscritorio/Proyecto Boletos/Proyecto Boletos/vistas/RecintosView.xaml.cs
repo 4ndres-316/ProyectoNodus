@@ -168,8 +168,19 @@ namespace Proyecto_Boletos.vistas
                 return;
             }
 
-            int? idCiudad =
-                cmbIdCiudad.SelectedValue != null ? (int?)(int)cmbIdCiudad.SelectedValue : null;
+            if (!long.TryParse(txtPrecioHora.Text, out long precioValido))
+            {
+                MessageBox.Show(
+                    "El precio por hora debe ser un número válido.",
+                    "Validación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            long? idCiudad =
+                cmbIdCiudad.SelectedValue != null ? (long?)cmbIdCiudad.SelectedValue : null;
 
             try
             {
@@ -179,6 +190,9 @@ namespace Proyecto_Boletos.vistas
                     _recintoSeleccionado.DireccionRecinto = txtDireccion.Text.Trim();
                     _recintoSeleccionado.IdCiudad = idCiudad;
                     _recintoSeleccionado.Capacidad = capacidadValida;
+                    _recintoSeleccionado.PrecioHora = precioValido;
+                    _recintoSeleccionado.LinkUbicacion = txtUrlDireccion.Text.Trim();
+                    _recintoSeleccionado.ImagenUrl = txtImagenUrl.Text.Trim();
                     _recintoSeleccionado.DescripcionRecinto = txtDescripcion.Text.Trim();
                     _recintoSeleccionado.TipoRecinto = (
                         (ComboBoxItem)cmbTipoRecinto.SelectedItem
@@ -197,6 +211,9 @@ namespace Proyecto_Boletos.vistas
                         DireccionRecinto = txtDireccion.Text.Trim(),
                         IdCiudad = idCiudad,
                         Capacidad = capacidadValida,
+                        PrecioHora = precioValido,
+                        LinkUbicacion = txtUrlDireccion.Text.Trim(),
+                        ImagenUrl = txtImagenUrl.Text.Trim(),
                         DescripcionRecinto = txtDescripcion.Text.Trim(),
                         TipoRecinto = (
                             (ComboBoxItem)cmbTipoRecinto.SelectedItem
@@ -245,6 +262,9 @@ namespace Proyecto_Boletos.vistas
             txtNombreRecinto.Text = _recintoSeleccionado.NombreRecinto;
             txtDireccion.Text = _recintoSeleccionado.DireccionRecinto;
             txtCapacidad.Text = _recintoSeleccionado.Capacidad.ToString();
+            txtPrecioHora.Text = _recintoSeleccionado.PrecioHora.ToString();
+            txtUrlDireccion.Text = _recintoSeleccionado.LinkUbicacion;
+            txtImagenUrl.Text = _recintoSeleccionado.ImagenUrl;
             txtDescripcion.Text = _recintoSeleccionado.DescripcionRecinto;
             cmbIdCiudad.SelectedValue = _recintoSeleccionado.IdCiudad;
 
@@ -315,6 +335,47 @@ namespace Proyecto_Boletos.vistas
             }
         }
 
+        private async void btnDeshabilitar_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.Tag is Recinto recinto)
+                _recintoSeleccionado = recinto;
+
+            if (_recintoSeleccionado == null)
+                return;
+
+            var resultado = MessageBox.Show(
+                $"¿Deshabilitar '{_recintoSeleccionado.NombreRecinto}'? Su estado cambiará a 'Clausurado'.",
+                "Confirmar",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
+
+            if (resultado == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    _recintoSeleccionado.EstadoRecinto = "Clausurado";
+                    await ConexionDB.Client.From<Recinto>().Update(_recintoSeleccionado);
+                    await CargarRecintos();
+                    MessageBox.Show(
+                        "Recinto deshabilitado",
+                        "Éxito",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Error: {ex.Message}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
+            }
+        }
+
         private void btnCancelar_Click(object sender, RoutedEventArgs e)
         {
             LimpiarFormulario();
@@ -331,6 +392,9 @@ namespace Proyecto_Boletos.vistas
             txtNombreRecinto.Clear();
             txtDireccion.Clear();
             txtCapacidad.Clear();
+            txtPrecioHora.Clear();
+            txtUrlDireccion.Clear();
+            txtImagenUrl.Clear();
             txtDescripcion.Clear();
             cmbIdCiudad.SelectedIndex = -1;
             cmbTipoRecinto.SelectedIndex = 0;

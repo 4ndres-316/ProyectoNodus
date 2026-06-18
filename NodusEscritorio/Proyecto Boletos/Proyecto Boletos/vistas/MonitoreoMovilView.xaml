@@ -1,0 +1,127 @@
+<Window
+  x:Class="Proyecto_Boletos.vistas.MonitoreoMovilView"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Monitoreo - Actividad App Movil"
+  Height="640"
+  Width="960"
+  WindowStartupLocation="CenterOwner"
+  ResizeMode="CanResizeWithGrip"
+  Icon="/Logo_Nodus.png"
+  Background="{DynamicResource Color3}"
+  Loaded="Window_Loaded"
+>
+  <Grid Margin="24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- Encabezado -->
+    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+      <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8EA;" FontSize="26"
+                 Foreground="{DynamicResource Color2}" VerticalAlignment="Center" Margin="0,0,10,0" />
+      <TextBlock Text="Monitoreo de Actividad App Movil"
+                 FontSize="24" FontWeight="Bold" Foreground="{DynamicResource Color2}" />
+      <Button x:Name="btnRefrescar" Content="  Actualizar" Height="32"
+              Margin="20,0,0,0" Padding="10,0" Cursor="Hand"
+              Background="{DynamicResource Color2}" Foreground="White"
+              BorderBrush="{DynamicResource Color2}"
+              Click="btnRefrescar_Click" />
+    </StackPanel>
+
+    <!-- Stats row -->
+    <Grid Grid.Row="1" Margin="0,0,0,16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <Border Grid.Column="0" Margin="0,0,8,0" Padding="14,10"
+              Background="White" BorderBrush="{DynamicResource Color2}" BorderThickness="1" CornerRadius="8">
+        <StackPanel>
+          <TextBlock Text="Boletos Emitidos" FontSize="12" Foreground="#555" />
+          <TextBlock x:Name="txtMovilBoletos" Text="0" FontSize="32" FontWeight="Bold"
+                     Foreground="{DynamicResource Color2}" />
+        </StackPanel>
+      </Border>
+
+      <Border Grid.Column="1" Margin="8,0" Padding="14,10"
+              Background="White" BorderBrush="{DynamicResource Color2}" BorderThickness="1" CornerRadius="8">
+        <StackPanel>
+          <TextBlock Text="Reservas Activas" FontSize="12" Foreground="#555" />
+          <TextBlock x:Name="txtMovilReservas" Text="0" FontSize="32" FontWeight="Bold"
+                     Foreground="{DynamicResource Color2}" />
+        </StackPanel>
+      </Border>
+
+      <Border Grid.Column="2" Margin="8,0,0,0" Padding="14,10"
+              Background="White" BorderBrush="{DynamicResource Color2}" BorderThickness="1" CornerRadius="8">
+        <StackPanel>
+          <TextBlock Text="Invitados Registrados" FontSize="12" Foreground="#555" />
+          <TextBlock x:Name="txtMovilInvitados" Text="0" FontSize="32" FontWeight="Bold"
+                     Foreground="{DynamicResource Color4}" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- Tablas -->
+    <Grid Grid.Row="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="12" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Boletos recientes -->
+      <Border Grid.Column="0" Background="White"
+              BorderBrush="{DynamicResource Color2}" BorderThickness="1" CornerRadius="8" Padding="14">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <TextBlock Text="Boletos Emitidos Recientes" FontSize="15" FontWeight="Bold"
+                     Foreground="{DynamicResource Color2}" Margin="0,0,0,10" />
+          <DataGrid x:Name="dgMovilBoletos" Grid.Row="1"
+                    AutoGenerateColumns="False" IsReadOnly="True"
+                    HeadersVisibility="Column" GridLinesVisibility="None"
+                    RowBackground="Transparent" Background="Transparent" BorderThickness="0" FontSize="12">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Codigo" Binding="{Binding Codigo}" Width="90" />
+              <DataGridTextColumn Header="Evento" Binding="{Binding Evento}" Width="*" />
+              <DataGridTextColumn Header="Tipo" Binding="{Binding Tipo}" Width="70" />
+              <DataGridTextColumn Header="Precio" Binding="{Binding Precio}" Width="70" />
+              <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="80" />
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </Border>
+
+      <!-- Invitados registrados -->
+      <Border Grid.Column="2" Background="White"
+              BorderBrush="{DynamicResource Color2}" BorderThickness="1" CornerRadius="8" Padding="14">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <TextBlock Text="Invitados Registrados" FontSize="15" FontWeight="Bold"
+                     Foreground="{DynamicResource Color2}" Margin="0,0,0,10" />
+          <DataGrid x:Name="dgMovilInvitados" Grid.Row="1"
+                    AutoGenerateColumns="False" IsReadOnly="True"
+                    HeadersVisibility="Column" GridLinesVisibility="None"
+                    RowBackground="Transparent" Background="Transparent" BorderThickness="0" FontSize="12">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*" />
+              <DataGridTextColumn Header="Tipo" Binding="{Binding Tipo}" Width="80" />
+              <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="80" />
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

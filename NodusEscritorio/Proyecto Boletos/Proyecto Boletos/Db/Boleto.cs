@@ -15,7 +15,7 @@ namespace Proyecto_Boletos.Db
         public int IdBoleto { get; set; }
 
         [Column("id_evento")]
-        public long IdEvento { get; set; }
+        public long? IdEvento { get; set; }
 
         [Column("codigo")]
         public string Codigo { get; set; } = string.Empty;
@@ -33,6 +33,6 @@ namespace Proyecto_Boletos.Db
         public string EstadoValidacion { get; set; } = string.Empty;
 
         [Column("precio_boleto")]
-        public decimal PrecioBoleto { get; set; }
+        public decimal? PrecioBoleto { get; set; }
     }
 }

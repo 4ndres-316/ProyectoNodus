@@ -1,10 +1,6 @@
-﻿using Supabase.Postgrest.Attributes;
+﻿using Newtonsoft.Json;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Proyecto_Boletos.Db
 {
@@ -23,6 +19,7 @@ namespace Proyecto_Boletos.Db
         [Column("estado")]
         public string Estado { get; set; } = string.Empty;
 
+        [JsonIgnore]
         public string NombreCategoria { get; set; } = string.Empty;
     }
 }

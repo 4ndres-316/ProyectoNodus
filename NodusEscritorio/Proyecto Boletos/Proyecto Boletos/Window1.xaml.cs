@@ -19,11 +19,13 @@ namespace Proyecto_Boletos
     public partial class Window1 : Window
     {
         private Usuario _usuarioActual;
+        private Rol _rolActual;
 
-        public Window1(Usuario usuario)
+        public Window1(Usuario usuario, Rol rol)
         {
             InitializeComponent();
             _usuarioActual = usuario;
+            _rolActual = rol;
             Timer();
             ConfigurarInterfaz();
             MainContent.Content = new vistas.DashboardView();
@@ -32,10 +34,31 @@ namespace Proyecto_Boletos
         private void ConfigurarInterfaz()
         {
             tbUsuario.Text = _usuarioActual.NombreUsuario;
-            tbRol.Text = _usuarioActual.IdRol == 1 ? "Administrador" : "Organizador";
+            tbRol.Text = _rolActual?.Nombre ?? "Sin rol";
 
-            if (_usuarioActual.IdRol != 1)
+            // Partimos mostrando todos los botones del sidebar
+            btnDashboard.Visibility = Visibility.Visible;
+            btnClientes.Visibility = Visibility.Visible;
+            btnUsuarios.Visibility = Visibility.Visible;
+            btnEventos.Visibility = Visibility.Visible;
+            btnRecintos.Visibility = Visibility.Visible;
+            btnProveedores.Visibility = Visibility.Visible;
+            btnReportes.Visibility = Visibility.Visible;
+            btnCarrito.Visibility = Visibility.Visible;
+            btnMonitoreoWeb.Visibility = Visibility.Visible;
+            btnMonitoreoMovil.Visibility = Visibility.Visible;
+
+            string nombreRol = _rolActual?.Nombre?.Trim() ?? "";
+
+            if (string.Equals(nombreRol, "Organizador", StringComparison.OrdinalIgnoreCase))
+            {
+                // Organizador: solo Dashboard, Clientes, Eventos, Recintos, Proveedores, Carrito
                 btnUsuarios.Visibility = Visibility.Collapsed;
+                btnReportes.Visibility = Visibility.Collapsed;
+                btnMonitoreoWeb.Visibility = Visibility.Collapsed;
+                btnMonitoreoMovil.Visibility = Visibility.Collapsed;
+            }
+            // Administrador: todos los botones visibles (por defecto arriba)
         }
 
         private void btnVolver_Click(object sender, RoutedEventArgs e)
@@ -68,7 +91,7 @@ namespace Proyecto_Boletos
 
         private void btnEventos_Click(object sender, RoutedEventArgs e)
         {
-            MainContent.Content = new vistas.EventosView(_usuarioActual.IdUsuario);
+            MainContent.Content = new vistas.EventosView(_usuarioActual.IdUsuario, _usuarioActual.NombreUsuario);
         }
 
         private void btnRecintos_Click(object sender, RoutedEventArgs e)
@@ -93,7 +116,26 @@ namespace Proyecto_Boletos
 
         private void btnCarrito_Click(object sender, RoutedEventArgs e)
         {
-            MainContent.Content = new vistas.CarritoView();
+            MainContent.Content = new vistas.CarritoView(_usuarioActual.IdUsuario);
+        }
+
+        private void btnClientes_Click(object sender, RoutedEventArgs e)
+        {
+            MainContent.Content = new vistas.ClientesView(_usuarioActual.IdUsuario);
+        }
+
+        private void btnMonitoreoWeb_Click(object sender, RoutedEventArgs e)
+        {
+            var ventana = new vistas.MonitoreoWebView();
+            ventana.Owner = this;
+            ventana.ShowDialog();
+        }
+
+        private void btnMonitoreoMovil_Click(object sender, RoutedEventArgs e)
+        {
+            var ventana = new vistas.MonitoreoMovilView();
+            ventana.Owner = this;
+            ventana.ShowDialog();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,105 +31,141 @@ namespace Proyecto_Boletos.vistas
         public decimal Monto { get; private set; }
         public string Nota { get; private set; } = string.Empty;
 
+        public string ClienteNombre { get; private set; } = string.Empty;
+        public string ClienteApellido { get; private set; } = string.Empty;
+        public string ClienteNit { get; private set; } = string.Empty;
+        public string ClienteCorreo { get; private set; } = string.Empty;
+        public decimal Descuento { get; private set; }
+        public decimal TotalFinal { get; private set; }
+
         private List<MetodoPago> _metodosPago;
         private MetodoPago _metodoPagoActivo;
         private List<LineaDesglose> _desglose;
+        private decimal _subtotal;
 
-        // Constructor para reserva — solo costo del recinto
+        public PagoEventoDialog(List<MetodoPago> metodosPago, List<LineaDesglose> desglose = null, Usuario clientePreseleccionado = null)
+        {
+            InitializeComponent();
+            _metodosPago = metodosPago ?? new List<MetodoPago>();
+            _desglose = desglose ?? new List<LineaDesglose>();
+            _subtotal = _desglose.Sum(d => d.Monto);
+            CargarMetodosPago();
+            CargarDesglose();
+            RecalcularTotal();
+
+            if (clientePreseleccionado != null)
+            {
+                var partes = clientePreseleccionado.NombreUsuario.Trim().Split(' ');
+                txtClienteNombre.Text = partes[0];
+                txtClienteApellido.Text = partes.Length > 1
+                    ? string.Join(" ", partes, 1, partes.Length - 1)
+                    : "";
+                txtClienteCorreo.Text = clientePreseleccionado.EmailUsuario;
+            }
+        }
+
         public PagoEventoDialog(List<MetodoPago> metodosPago, decimal costoRecinto)
-        {
-            InitializeComponent();
-            _metodosPago = metodosPago ?? new List<MetodoPago>();
+            : this(metodosPago, new List<LineaDesglose>
+              {
+                  new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto }
+              }) { }
 
-            _desglose = new List<LineaDesglose>
-            {
-                new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto },
-            };
-
-            CargarMetodosPago();
-        }
-
-        // Constructor para evento — costo recinto + servicios
-        public PagoEventoDialog(
-            List<MetodoPago> metodosPago,
-            decimal costoRecinto,
-            List<LineaDesglose> servicios
-        )
-        {
-            InitializeComponent();
-            _metodosPago = metodosPago ?? new List<MetodoPago>();
-
-            _desglose = new List<LineaDesglose>
-            {
-                new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto },
-            };
-
-            if (servicios != null)
-                _desglose.AddRange(servicios);
-
-            CargarMetodosPago();
-        }
-
-        // Constructor original sin desglose (para compatibilidad)
-        public PagoEventoDialog(List<MetodoPago> metodosPago)
-        {
-            InitializeComponent();
-            _metodosPago = metodosPago ?? new List<MetodoPago>();
-            CargarMetodosPago();
-        }
+        public PagoEventoDialog(List<MetodoPago> metodosPago, decimal costoRecinto, List<LineaDesglose> servicios)
+            : this(metodosPago, new List<LineaDesglose>(
+                new[] { new LineaDesglose { Concepto = "Costo Recinto", Monto = costoRecinto } }
+                .Concat(servicios ?? Enumerable.Empty<LineaDesglose>()))) { }
 
         private void CargarMetodosPago()
         {
-            // Buscar métodos de pago Efectivo y QR entre los disponibles
             var efectivo = _metodosPago.FirstOrDefault(m =>
-                m.Nombre.IndexOf("Efectivo", StringComparison.OrdinalIgnoreCase) >= 0
-            );
+                m.Nombre.IndexOf("Efectivo", StringComparison.OrdinalIgnoreCase) >= 0);
             var qr = _metodosPago.FirstOrDefault(m =>
                 m.Nombre.IndexOf("QR", StringComparison.OrdinalIgnoreCase) >= 0
-                || m.Nombre.IndexOf("Qr", StringComparison.OrdinalIgnoreCase) >= 0
-            );
+                || m.Nombre.IndexOf("Qr", StringComparison.OrdinalIgnoreCase) >= 0);
 
-            // Si no hay métodos específicos, usar los primeros disponibles
-            if (efectivo == null && _metodosPago.Count > 0)
-                efectivo = _metodosPago[0];
-            if (qr == null && _metodosPago.Count > 1)
-                qr = _metodosPago[1];
+            if (efectivo == null && _metodosPago.Count > 0) efectivo = _metodosPago[0];
+            if (qr == null && _metodosPago.Count > 1) qr = _metodosPago[1];
 
-            if (efectivo != null)
-                btnEfectivo.Tag = efectivo;
-            if (qr != null)
-                btnQR.Tag = qr;
+            if (efectivo != null) btnEfectivo.Tag = efectivo;
+            if (qr != null) btnQR.Tag = qr;
 
-            // Ocultar botón QR si no existe
-            if (qr == null)
-                btnQR.Visibility = Visibility.Collapsed;
-            if (efectivo == null)
-                btnEfectivo.Visibility = Visibility.Collapsed;
+            if (qr == null) btnQR.Visibility = Visibility.Collapsed;
+            if (efectivo == null) btnEfectivo.Visibility = Visibility.Collapsed;
+        }
+
+        private void CargarDesglose()
+        {
+            lvDesglose.ItemsSource = _desglose.Count > 0
+                ? _desglose
+                : new List<LineaDesglose> { new LineaDesglose { Concepto = "Pedido sin desglose", Monto = 0 } };
+        }
+
+        private void RecalcularTotal()
+        {
+            decimal honorario = Math.Round(_subtotal * 0.10m, 2);
+            decimal desc = decimal.TryParse(txtDescuento?.Text, out decimal d) && d >= 0 ? d : 0;
+            decimal total = _subtotal + honorario - desc;
+            if (total < 0) total = 0;
+
+            TotalFinal = total;
+
+            if (txtSubtotal != null) txtSubtotal.Text = $"Bs {_subtotal:F2}";
+            if (txtHonorario != null) txtHonorario.Text = $"Bs {honorario:F2}";
+            if (txtTotalFinal != null) txtTotalFinal.Text = $"Bs {total:F2}";
+            if (txtMonto != null) txtMonto.Text = total.ToString("F2");
+        }
+
+        private void txtDescuento_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RecalcularTotal();
         }
 
         private void btnEfectivo_Click(object sender, RoutedEventArgs e)
         {
             gridEfectivo.Visibility = Visibility.Visible;
             gridQR.Visibility = Visibility.Collapsed;
-
-            var metodo = btnEfectivo.Tag as MetodoPago;
-            _metodoPagoActivo = metodo;
+            _metodoPagoActivo = btnEfectivo.Tag as MetodoPago;
+            txtMonto.Text = TotalFinal.ToString("F2");
         }
 
         private void btnQR_Click(object sender, RoutedEventArgs e)
         {
             gridQR.Visibility = Visibility.Visible;
             gridEfectivo.Visibility = Visibility.Collapsed;
-
-            var metodo = btnQR.Tag as MetodoPago;
-            _metodoPagoActivo = metodo;
-
-            string codigoPago = $"Nodus | Monto: {Monto} BOB";
-            GenerarQR(codigoPago);
+            _metodoPagoActivo = btnQR.Tag as MetodoPago;
+            GenerarQR($"Nodus | Monto: {TotalFinal:F2} BOB");
         }
 
         private void btnSinPago_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtClienteNombre.Text))
+            {
+                MessageBox.Show("El nombre del cliente es obligatorio.",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtClienteApellido.Text))
+            {
+                MessageBox.Show("El apellido del cliente es obligatorio.",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!decimal.TryParse(txtMonto.Text, out decimal monto) || monto <= 0)
+            {
+                MessageBox.Show("Ingresa un monto valido mayor a 0.",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            Monto = monto;
+            Nota = txtNota?.Text.Trim() ?? string.Empty;
+            ClienteNombre = txtClienteNombre.Text.Trim();
+            ClienteApellido = txtClienteApellido.Text.Trim();
+            ClienteNit = txtClienteNit.Text.Trim();
+            ClienteCorreo = txtClienteCorreo.Text.Trim();
+            Descuento = decimal.TryParse(txtDescuento.Text, out decimal desc) ? desc : 0;
             Resultado = ResultadoPago.SinPago;
             this.DialogResult = false;
             this.Close();
@@ -139,40 +175,57 @@ namespace Proyecto_Boletos.vistas
         {
             if (_metodoPagoActivo == null)
             {
-                MessageBox.Show(
-                    "Selecciona un método de pago (Efectivo o QR).",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                MessageBox.Show("Selecciona un metodo de pago (Efectivo o QR).",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtClienteNombre.Text))
+            {
+                MessageBox.Show("El nombre del cliente es obligatorio.",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtClienteApellido.Text))
+            {
+                MessageBox.Show("El apellido del cliente es obligatorio.",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtClienteNit.Text))
+            {
+                MessageBox.Show("El NIT o carnet del cliente es obligatorio.",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (!decimal.TryParse(txtMonto.Text, out decimal monto) || monto <= 0)
             {
-                MessageBox.Show(
-                    "Ingresa un monto válido mayor a 0.",
-                    "Validación",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                MessageBox.Show("Ingresa un monto valido mayor a 0.",
+                    "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             Resultado = ResultadoPago.Pagar;
             IdMetodoPagoSeleccionado = _metodoPagoActivo.IdMetodoPago;
             Monto = monto;
-            Nota = txtNota.Text.Trim();
+            Nota = txtNota?.Text.Trim() ?? string.Empty;
+            ClienteNombre = txtClienteNombre.Text.Trim();
+            ClienteApellido = txtClienteApellido.Text.Trim();
+            ClienteNit = txtClienteNit.Text.Trim();
+            ClienteCorreo = txtClienteCorreo.Text.Trim();
+            Descuento = decimal.TryParse(txtDescuento.Text, out decimal desc) ? desc : 0;
 
             this.DialogResult = true;
             this.Close();
         }
 
-        // Permite que quién abre el diálogo pueda pre-llenar el monto
         public void SetMonto(decimal monto)
         {
             Monto = monto;
-            txtMonto.Text = monto.ToString("F2");
+            if (txtMonto != null) txtMonto.Text = monto.ToString("F2");
         }
 
         private void GenerarQR(string texto)

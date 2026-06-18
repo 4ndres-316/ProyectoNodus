@@ -12,10 +12,10 @@ namespace Proyecto_Boletos.Db
     public class Ciudad : BaseModel
     {
         [PrimaryKey("id_ciudad")]
-        public int IdCiudad { get; set; }
+        public long IdCiudad { get; set; }
 
         [Column("id_departamento")]
-        public int IdDepartamento { get; set; }
+        public long IdDepartamento { get; set; }
 
         [Column("nombre_ciudad")]
         public string NombreCiudad { get; set; } = string.Empty;
