@@ -31,16 +31,24 @@ namespace Proyecto_Boletos.vistas
             {
                 var roles = (await ConexionDB.Client.From<Rol>().Get()).Models;
                 var idRolCliente = roles
-                    .Where(r => string.Equals(r.Nombre, "Cliente", StringComparison.OrdinalIgnoreCase)
-                             || string.Equals(r.Nombre, "Client", StringComparison.OrdinalIgnoreCase)
-                             || string.Equals(r.Nombre, "Usuario", StringComparison.OrdinalIgnoreCase))
+                    .Where(r =>
+                        string.Equals(r.Nombre, "Cliente", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(r.Nombre, "Client", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(r.Nombre, "Usuario", StringComparison.OrdinalIgnoreCase)
+                    )
                     .Select(r => r.IdRol)
                     .ToHashSet();
 
                 // Si no hay rol "Cliente" definido, tomamos todos los que no son Admin ni Organizador
                 var rolesPrivilegiados = roles
-                    .Where(r => string.Equals(r.Nombre, "Admin", StringComparison.OrdinalIgnoreCase)
-                             || string.Equals(r.Nombre, "Organizador", StringComparison.OrdinalIgnoreCase))
+                    .Where(r =>
+                        string.Equals(r.Nombre, "Admin", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(
+                            r.Nombre,
+                            "Organizador",
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
                     .Select(r => r.IdRol)
                     .ToHashSet();
 
@@ -56,8 +64,12 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar clientes: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error al cargar clientes: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -78,10 +90,11 @@ namespace Proyecto_Boletos.vistas
 
             var filtrado = _todosClientes
                 .Where(u =>
-                    u.NombreUsuario.ToLower().Contains(texto) ||
-                    u.Username.ToLower().Contains(texto) ||
-                    u.EmailUsuario.ToLower().Contains(texto) ||
-                    u.Telefono.ToLower().Contains(texto))
+                    (u.NombreUsuario ?? "").ToLower().Contains(texto)
+                    || (u.Username ?? "").ToLower().Contains(texto)
+                    || (u.EmailUsuario ?? "").ToLower().Contains(texto)
+                    || (u.Telefono ?? "").ToLower().Contains(texto)
+                )
                 .ToList();
 
             MostrarClientes(filtrado);
@@ -102,7 +115,8 @@ namespace Proyecto_Boletos.vistas
                     $"Cliente '{dialog.ClienteCreado.NombreUsuario}' registrado.\n¿Crear un evento para este cliente ahora?",
                     "Cliente Registrado",
                     MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+                    MessageBoxImage.Question
+                );
 
                 if (resultado == MessageBoxResult.Yes)
                     AbrirCrearEvento(dialog.ClienteCreado);
@@ -112,7 +126,8 @@ namespace Proyecto_Boletos.vistas
         private void btnCrearEvento_Click(object sender, RoutedEventArgs e)
         {
             var cliente = (sender as Button)?.Tag as Usuario;
-            if (cliente == null) return;
+            if (cliente == null)
+                return;
             AbrirCrearEvento(cliente);
         }
 
@@ -126,7 +141,8 @@ namespace Proyecto_Boletos.vistas
         private async void btnHistorial_Click(object sender, RoutedEventArgs e)
         {
             var cliente = (sender as Button)?.Tag as Usuario;
-            if (cliente == null) return;
+            if (cliente == null)
+                return;
 
             try
             {
@@ -136,8 +152,12 @@ namespace Proyecto_Boletos.vistas
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Error: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
     }

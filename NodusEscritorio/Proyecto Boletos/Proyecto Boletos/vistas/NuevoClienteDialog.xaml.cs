@@ -77,9 +77,11 @@ namespace Proyecto_Boletos.vistas
 
                 // Buscar IdRol de cliente (el que no es Admin ni Organizador)
                 var roles = (await ConexionDB.Client.From<Rol>().Get()).Models;
+
+                // Buscar explícitamente el rol "Cliente"
                 var rolCliente = roles.Find(r =>
-                    !string.Equals(r.Nombre, "Admin", StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(r.Nombre, "Organizador", StringComparison.OrdinalIgnoreCase));
+                    string.Equals(r.Nombre, "Cliente", StringComparison.OrdinalIgnoreCase));
+
                 int idRolCliente = rolCliente?.IdRol ?? 3;
 
                 var nuevoUsuario = new Usuario
