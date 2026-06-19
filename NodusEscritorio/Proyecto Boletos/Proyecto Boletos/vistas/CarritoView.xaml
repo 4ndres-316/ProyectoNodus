@@ -96,7 +96,7 @@
     >
       <Grid>
         <!-- Cards -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" Padding="10">
           <WrapPanel x:Name="wpBoletos" Orientation="Horizontal" />
         </ScrollViewer>
 

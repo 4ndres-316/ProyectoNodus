@@ -284,8 +284,8 @@ namespace Proyecto_Boletos.vistas
             foreach (var ev in _eventos)
             {
                 // No mostrar en el calendario eventos que aún no concretaron su venta/pago
-                if (string.Equals(ev.EstadoEvento?.Trim(), "En espera", StringComparison.OrdinalIgnoreCase))
-                    continue;
+                if (string.Equals(ev.EstadoEvento?.Trim(), "En reserva", StringComparison.OrdinalIgnoreCase)) continue; // ← NUEVO
+                if (string.Equals(ev.EstadoEvento?.Trim(), "Cancelado", StringComparison.OrdinalIgnoreCase)) continue; // ← NUEVO
 
                 var recinto = _recintos?.Find(r => r.IdRecinto == ev.IdRecinto);
                 var fechaEvento = _fechasEventos?.Find(f => f.Id == ev.IdFechaEvento);
@@ -371,14 +371,20 @@ namespace Proyecto_Boletos.vistas
             ventana.Owner = Window.GetWindow(this);
             bool? result = ventana.ShowDialog();
 
-            if (result == true)
+            if (result != true)
+                return;
+
+            if (ventana.CreadoSinPago)
             {
-                Dispatcher.InvokeAsync(async () =>
-                {
-                    await CargarFechasEventos();
-                    await CargarEventos();
-                });
+                (Window.GetWindow(this) as Window1)?.AbrirCarritoEnEspera();
+                return;
             }
+
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await CargarFechasEventos();
+                await CargarEventos();
+            });
         }
 
         private void BtnReprogramar_Click(object sender, RoutedEventArgs e)
@@ -402,15 +408,18 @@ namespace Proyecto_Boletos.vistas
 
             popupEventosDia.IsOpen = false;
 
-            /*var ventana = new NuevoPedidoDialog(_idUsuarioAdmin, _metodosPago, cliente);
+            var ventana = new NuevoPedidoDialog(ev, fechaEv, _metodosPago);
             ventana.Owner = Window.GetWindow(this);
-            ventana.ShowDialog();*/
+            bool? result = ventana.ShowDialog();
 
-            Dispatcher.InvokeAsync(async () =>
+            if (result == true)
             {
-                await CargarFechasEventos();
-                await CargarEventos();
-            });
+                Dispatcher.InvokeAsync(async () =>
+                {
+                    await CargarFechasEventos();
+                    await CargarEventos();
+                });
+            }
         }
     }
 

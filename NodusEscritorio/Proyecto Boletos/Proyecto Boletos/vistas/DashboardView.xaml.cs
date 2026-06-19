@@ -54,7 +54,7 @@ namespace Proyecto_Boletos.vistas
                         .Trim();
                 }
 
-                var estadosActivos = new[] { "Programado", "En espera" };
+                var estadosActivos = new[] { "Programado", "Reprogramado" };
 
                 // Solo eventos con estado activo cuya fecha de inicio aún no ha llegado
                 var eventosActivos = eventos

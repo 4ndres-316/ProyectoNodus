@@ -160,14 +160,11 @@
     <Compile Include="Db\Evento.cs" />
     <Compile Include="Db\EventoServicio.cs" />
     <Compile Include="Db\FechaEvento.cs" />
-    <Compile Include="Db\Gasto.cs" />
     <Compile Include="Db\Invitado.cs" />
     <Compile Include="Db\Media.cs" />
     <Compile Include="Db\MetodoPago.cs" />
-    <Compile Include="Db\Notificacion.cs" />
     <Compile Include="Db\Orden.cs" />
     <Compile Include="Db\Pago.cs" />
-    <Compile Include="Db\Presupuesto.cs" />
     <Compile Include="Db\Proveedor.cs" />
     <Compile Include="Db\ProveedorServicio.cs" />
     <Compile Include="Db\Recinto.cs" />
@@ -183,16 +180,10 @@
     <Compile Include="vistas\Configuracion.xaml.cs">
       <DependentUpon>Configuracion.xaml</DependentUpon>
     </Compile>
-    <Compile Include="vistas\CreacionEvento.xaml.cs">
-      <DependentUpon>CreacionEvento.xaml</DependentUpon>
-    </Compile>
     <Compile Include="vistas\FilaBoleto.cs" />
     <Compile Include="vistas\FilaServicio.cs" />
     <Compile Include="vistas\SeleccionCompraDialog.cs" />
     <Compile Include="vistas\FacturaDialog.cs" />
-    <Compile Include="vistas\CreacionReserva.xaml.cs">
-      <DependentUpon>CreacionReserva.xaml</DependentUpon>
-    </Compile>
     <Compile Include="vistas\DashboardView.xaml.cs">
       <DependentUpon>DashboardView.xaml</DependentUpon>
     </Compile>
@@ -226,9 +217,6 @@
     <Compile Include="vistas\MonitoreoWebView.xaml.cs">
       <DependentUpon>MonitoreoWebView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="vistas\ProveedoresWebView.xaml.cs">
-      <DependentUpon>ProveedoresWebView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="vistas\RecintosView.xaml.cs">
       <DependentUpon>RecintosView.xaml</DependentUpon>
     </Compile>
@@ -255,14 +243,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="vistas\Configuracion.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="vistas\CreacionEvento.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="vistas\CreacionReserva.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -307,10 +287,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="vistas\MonitoreoWebView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="vistas\ProveedoresWebView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -54,15 +54,30 @@ namespace Proyecto_Boletos.vistas
         public string Tipo { get; set; } = string.Empty;
     }
 
+    public class BoletoTemporal
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public decimal Precio { get; set; }
+        public long Cantidad { get; set; }
+        public string PrecioFormateado => $"Bs {Precio:F2}";
+    }
+
     public partial class NuevoPedidoDialog : Window
     {
+        public bool CreadoSinPago { get; private set; }
+
         private int _idUsuario;
         private List<MetodoPago> _metodosPago;
         private List<ItemOferta> _ofertasCompletas = new List<ItemOferta>();
         private List<ItemCarrito> _carrito = new List<ItemCarrito>();
         private List<InvitadoTemporal> _invitados = new List<InvitadoTemporal>();
+        private List<BoletoTemporal> _boletos = new List<BoletoTemporal>();
         private long _recintoSeleccionadoId = 0;
         private Usuario _clientePreseleccionado;
+
+        private Evento _eventoAReprogramar;
+        private FechaEvento _fechaAReprogramar;
+        private bool _modoReprogramar => _eventoAReprogramar != null;
 
         public NuevoPedidoDialog(int idUsuario, List<MetodoPago> metodosPago, Usuario clientePreseleccionado = null)
         {
@@ -70,6 +85,15 @@ namespace Proyecto_Boletos.vistas
             _idUsuario = idUsuario;
             _metodosPago = metodosPago ?? new List<MetodoPago>();
             _clientePreseleccionado = clientePreseleccionado;
+        }
+
+        public NuevoPedidoDialog(Evento evento, FechaEvento fecha, List<MetodoPago> metodosPago)
+        {
+            InitializeComponent();
+            _eventoAReprogramar = evento;
+            _fechaAReprogramar = fecha;
+            _idUsuario = evento.IdOrganizador;
+            _metodosPago = metodosPago ?? new List<MetodoPago>();
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -83,6 +107,54 @@ namespace Proyecto_Boletos.vistas
             }
 
             await CargarDatos();
+
+            if (_modoReprogramar)
+                await CargarDatosReprogramar();
+        }
+
+        private async Task CargarDatosReprogramar()
+        {
+            Title = $"Reprogramar Evento — {_eventoAReprogramar.NombreEvento}";
+            btnProcederPago.Content = "Guardar cambios";
+
+            txtNombreEvento.Text = _eventoAReprogramar.NombreEvento;
+            txtImagen.Text = _eventoAReprogramar.ImagenUrl ?? string.Empty;
+            txtMaxInvitados.Text = _eventoAReprogramar.TopeReserva?.ToString() ?? "0";
+            chkEsPublico.IsChecked = _eventoAReprogramar.EsPublico;
+
+            foreach (ComboBoxItem item in cmbCategoria.Items)
+            {
+                if (string.Equals(item.Content?.ToString(), _eventoAReprogramar.Categoria, StringComparison.OrdinalIgnoreCase))
+                {
+                    cmbCategoria.SelectedItem = item;
+                    break;
+                }
+            }
+
+            if (_fechaAReprogramar != null)
+            {
+                dpFechaInicio.SelectedDate = _fechaAReprogramar.FechaInicio;
+                dpFechaFin.SelectedDate = _fechaAReprogramar.FechaFin;
+                txtHoraInicio.Text = _fechaAReprogramar.HoraInicio.ToString(@"hh\:mm");
+                txtHoraFin.Text = _fechaAReprogramar.HoraFin.ToString(@"hh\:mm");
+            }
+
+            _recintoSeleccionadoId = _eventoAReprogramar.IdRecinto ?? 0;
+
+            try
+            {
+                var tiposBoleto = (await ConexionDB.Client.From<TipoBoleto>()
+                    .Where(t => t.IdEvento == _eventoAReprogramar.IdEvento).Get()).Models;
+
+                _boletos = tiposBoleto.Select(t => new BoletoTemporal
+                {
+                    Nombre = t.NombreTipoBoleto,
+                    Precio = t.Precio,
+                    Cantidad = t.CantidadTotal,
+                }).ToList();
+                ActualizarListaBoletos();
+            }
+            catch { }
         }
 
         private async Task CargarDatos()
@@ -327,6 +399,53 @@ namespace Proyecto_Boletos.vistas
             txtContadorInvitados.Text = $"{_invitados.Count} invitados agregados{maxTexto}.";
         }
 
+        // BOLETOS
+
+        private void btnAgregarBoleto_Click(object sender, RoutedEventArgs e)
+        {
+            var nombre = txtNombreBoleto.Text.Trim();
+            if (string.IsNullOrEmpty(nombre))
+            {
+                MessageBox.Show("Escribe el nombre del boleto.", "Validacion",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!decimal.TryParse(txtPrecio.Text.Trim(), out decimal precio) || precio < 0)
+            {
+                MessageBox.Show("Ingresa un precio valido para el boleto.", "Validacion",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!long.TryParse(txtCantidadBoleto.Text.Trim(), out long cantidad) || cantidad <= 0)
+            {
+                MessageBox.Show("Ingresa una cantidad valida (mayor a 0) para el boleto.", "Validacion",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _boletos.Add(new BoletoTemporal { Nombre = nombre, Precio = precio, Cantidad = cantidad });
+            txtNombreBoleto.Text = string.Empty;
+            txtPrecio.Text = string.Empty;
+            txtCantidadBoleto.Text = string.Empty;
+            ActualizarListaBoletos();
+        }
+
+        private void btnQuitarBoleto_Click(object sender, RoutedEventArgs e)
+        {
+            var boleto = (sender as Button)?.Tag as BoletoTemporal;
+            if (boleto == null) return;
+            _boletos.Remove(boleto);
+            ActualizarListaBoletos();
+        }
+
+        private void ActualizarListaBoletos()
+        {
+            lvBoletos.ItemsSource = null;
+            lvBoletos.ItemsSource = _boletos;
+        }
+
         // PAGO Y CREACION DE EVENTO
 
         private async void btnProcederPago_Click(object sender, RoutedEventArgs e)
@@ -350,6 +469,12 @@ namespace Proyecto_Boletos.vistas
 
             if (!TimeSpan.TryParse(txtHoraFin.Text.Trim(), out TimeSpan horaFin))
                 horaFin = new TimeSpan(18, 0, 0);
+
+            if (_modoReprogramar)
+            {
+                await GuardarReprogramar(horaInicio, horaFin);
+                return;
+            }
 
             if (_carrito.Count == 0)
             {
@@ -429,7 +554,7 @@ namespace Proyecto_Boletos.vistas
             ventanaPago.Owner = this;
             ventanaPago.ShowDialog();
 
-            if (ventanaPago.Resultado != ResultadoPago.Pagar)
+            if (ventanaPago.Resultado == ResultadoPago.Cancelado)
                 return;
 
             try
@@ -439,6 +564,8 @@ namespace Proyecto_Boletos.vistas
                 var nombreEvento = txtNombreEvento.Text.Trim();
                 var esPublico = chkEsPublico.IsChecked == true;
                 var nombreCliente = $"{ventanaPago.ClienteNombre} {ventanaPago.ClienteApellido}".Trim();
+                var categoria = (cmbCategoria.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Personal";
+                var estadoEvento = ventanaPago.Resultado == ResultadoPago.Pagar ? "Confirmado" : "En reserva";
 
                 int topeReserva = 0;
                 int.TryParse(txtMaxInvitados.Text, out topeReserva);
@@ -460,8 +587,9 @@ namespace Proyecto_Boletos.vistas
                     IdRecinto = (int)_recintoSeleccionadoId,
                     IdFechaEvento = fechaEvento.Id,
                     NombreEvento = nombreEvento,
-                    Categoria = "Personal",
-                    EstadoEvento = "Confirmado",
+                    Categoria = categoria,
+                    ImagenUrl = txtImagen.Text.Trim(),
+                    EstadoEvento = estadoEvento,
                     EsPublico = esPublico,
                     NombreReservante = nombreCliente,
                     Descuento = 0,
@@ -479,6 +607,55 @@ namespace Proyecto_Boletos.vistas
                         Cantidad = (long)item.Cantidad,
                         EstadoEventoServicio = "Activo",
                     });
+                }
+
+                // 3b. Crear TipoBoleto si el evento es publico
+                if (esPublico)
+                {
+                    foreach (var boleto in _boletos)
+                    {
+                        await ConexionDB.Client.From<TipoBoleto>().Insert(new TipoBoleto
+                        {
+                            IdEvento = evento.IdEvento,
+                            NombreTipoBoleto = boleto.Nombre,
+                            Precio = boleto.Precio,
+                            CantidadTotal = boleto.Cantidad,
+                            CantidadDisponible = boleto.Cantidad,
+                        });
+                    }
+                }
+
+                // 3c. Crear Invitados
+                foreach (var inv in _invitados)
+                {
+                    await ConexionDB.Client.From<Invitado>().Insert(new Invitado
+                    {
+                        IdEvento = evento.IdEvento,
+                        NombreInvitado = inv.Nombre,
+                        TipoInvitado = inv.Tipo,
+                        EstadoInvitado = "Pendiente",
+                    });
+                }
+
+                var invMsg = _invitados.Count > 0
+                    ? $"\n{_invitados.Count} invitados registrados."
+                    : "";
+
+                if (ventanaPago.Resultado != ResultadoPago.Pagar)
+                {
+                    CreadoSinPago = true;
+
+                    MessageBox.Show(
+                        $"Evento '{nombreEvento}' creado en estado 'En reserva'.\n" +
+                        $"Fecha: {fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}" +
+                        invMsg,
+                        "Evento Registrado",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    this.DialogResult = true;
+                    this.Close();
+                    return;
                 }
 
                 // 4. Crear Orden
@@ -506,22 +683,6 @@ namespace Proyecto_Boletos.vistas
                     ReferenciaPago = ventanaPago.Nota,
                 });
 
-                // 6. Crear Invitados
-                foreach (var inv in _invitados)
-                {
-                    await ConexionDB.Client.From<Invitado>().Insert(new Invitado
-                    {
-                        IdEvento = evento.IdEvento,
-                        NombreInvitado = inv.Nombre,
-                        TipoInvitado = inv.Tipo,
-                        EstadoInvitado = "Pendiente",
-                    });
-                }
-
-                var invMsg = _invitados.Count > 0
-                    ? $"\n{_invitados.Count} invitados registrados."
-                    : "";
-
                 MessageBox.Show(
                     $"Evento '{nombreEvento}' creado exitosamente.\n" +
                     $"Factura emitida a: {nombreCliente}\n" +
@@ -544,6 +705,49 @@ namespace Proyecto_Boletos.vistas
         private void chkEsPublico_Checked(object sender, RoutedEventArgs e)
         {
             tabBoletos.Visibility = Visibility.Visible;
+        }
+
+        private void chkEsPublico_Unchecked(object sender, RoutedEventArgs e)
+        {
+            tabBoletos.Visibility = Visibility.Hidden;
+        }
+
+        // REPROGRAMAR
+
+        private async Task GuardarReprogramar(TimeSpan horaInicio, TimeSpan horaFin)
+        {
+            try
+            {
+                if (_fechaAReprogramar != null)
+                {
+                    _fechaAReprogramar.FechaInicio = dpFechaInicio.SelectedDate.Value;
+                    _fechaAReprogramar.FechaFin = dpFechaFin.SelectedDate.Value;
+                    _fechaAReprogramar.HoraInicio = horaInicio;
+                    _fechaAReprogramar.HoraFin = horaFin;
+                    await ConexionDB.Client.From<FechaEvento>().Update(_fechaAReprogramar);
+                }
+
+                _eventoAReprogramar.NombreEvento = txtNombreEvento.Text.Trim();
+                _eventoAReprogramar.Categoria = (cmbCategoria.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? _eventoAReprogramar.Categoria;
+                _eventoAReprogramar.ImagenUrl = txtImagen.Text.Trim();
+                _eventoAReprogramar.EsPublico = chkEsPublico.IsChecked == true;
+                int.TryParse(txtMaxInvitados.Text, out int tope);
+                _eventoAReprogramar.TopeReserva = tope;
+                _eventoAReprogramar.EstadoEvento = "Reprogramado";
+
+                await ConexionDB.Client.From<Evento>().Update(_eventoAReprogramar);
+
+                MessageBox.Show("Evento reprogramado correctamente.", "Éxito",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                this.DialogResult = true;
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al reprogramar: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

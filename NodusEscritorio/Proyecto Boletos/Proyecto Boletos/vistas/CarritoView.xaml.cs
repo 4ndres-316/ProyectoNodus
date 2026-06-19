@@ -17,10 +17,11 @@ namespace Proyecto_Boletos.vistas
         private List<MetodoPago> _metodosPago;
         private string _vistaActual = "boletos";
 
-        public CarritoView(int idUsuario)
+        public CarritoView(int idUsuario, string vistaInicial = "boletos")
         {
             InitializeComponent();
             _idUsuario = idUsuario;
+            _vistaActual = vistaInicial;
         }
 
         public CarritoView()
@@ -29,7 +30,16 @@ namespace Proyecto_Boletos.vistas
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             await CargarMetodosPago();
-            await CargarBoletos();
+
+            if (_vistaActual == "espera")
+            {
+                MostrarPanelEspera();
+                await CargarEspera();
+            }
+            else
+            {
+                await CargarBoletos();
+            }
         }
 
         private async Task CargarMetodosPago()
@@ -131,6 +141,11 @@ namespace Proyecto_Boletos.vistas
                             "Cancelado",
                             StringComparison.OrdinalIgnoreCase
                         )
+                        && !string.Equals(
+                            ev.EstadoEvento?.Trim(),
+                            "En reserva",
+                            StringComparison.OrdinalIgnoreCase
+                        )
                     )
                     .Select(ev =>
                     {
@@ -148,11 +163,12 @@ namespace Proyecto_Boletos.vistas
                             IdEvento = ev.IdEvento,
                             NombreEvento = ev.NombreEvento,
                             ImagenUrl = ev.ImagenUrl ?? string.Empty,
-                            FechaDisplay = fecha != null
-                                ? fecha.FechaInicio.ToString("dd/MM/yyyy")
-                                  + "  "
-                                  + fecha.HoraInicio.ToString(@"hh\:mm")
-                                : "—",
+                            FechaDisplay =
+                                fecha != null
+                                    ? fecha.FechaInicio.ToString("dd/MM/yyyy")
+                                        + "  "
+                                        + fecha.HoraInicio.ToString(@"hh\:mm")
+                                    : "—",
                             NombreRecinto = recinto?.NombreRecinto ?? "—",
                             PrecioBase = tipos.Min(t => t.Precio),
                             BoletosDisponibles = tipos.Sum(t => t.CantidadDisponible),
@@ -261,12 +277,8 @@ namespace Proyecto_Boletos.vistas
             txtNombre.SetResourceReference(TextBlock.ForegroundProperty, "Color1");
             body.Children.Add(txtNombre);
 
-            body.Children.Add(
-                FilaInfo("📅", card.FechaDisplay)
-            );
-            body.Children.Add(
-                FilaInfo("📍", card.NombreRecinto)
-            );
+            body.Children.Add(FilaInfo("📅", card.FechaDisplay));
+            body.Children.Add(FilaInfo("📍", card.NombreRecinto));
 
             var sepLine = new Border
             {
@@ -277,7 +289,9 @@ namespace Proyecto_Boletos.vistas
             body.Children.Add(sepLine);
 
             var rowPrecio = new Grid { Margin = new Thickness(0, 0, 0, 4) };
-            rowPrecio.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            rowPrecio.ColumnDefinitions.Add(
+                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+            );
             rowPrecio.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
             var lblPrecioTitulo = new TextBlock
@@ -342,23 +356,31 @@ namespace Proyecto_Boletos.vistas
 
         private StackPanel FilaInfo(string icono, string texto)
         {
-            var sp = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
-            sp.Children.Add(new TextBlock
+            var sp = new StackPanel
             {
-                Text = icono,
-                FontSize = 11,
-                Margin = new Thickness(0, 0, 5, 0),
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-            sp.Children.Add(new TextBlock
-            {
-                Text = texto,
-                FontSize = 11,
-                Foreground = new SolidColorBrush(Color.FromRgb(90, 90, 90)),
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                MaxWidth = 200,
-                VerticalAlignment = VerticalAlignment.Center,
-            });
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(0, 0, 0, 4),
+            };
+            sp.Children.Add(
+                new TextBlock
+                {
+                    Text = icono,
+                    FontSize = 11,
+                    Margin = new Thickness(0, 0, 5, 0),
+                    VerticalAlignment = VerticalAlignment.Center,
+                }
+            );
+            sp.Children.Add(
+                new TextBlock
+                {
+                    Text = texto,
+                    FontSize = 11,
+                    Foreground = new SolidColorBrush(Color.FromRgb(90, 90, 90)),
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxWidth = 200,
+                    VerticalAlignment = VerticalAlignment.Center,
+                }
+            );
             return sp;
         }
 
@@ -513,18 +535,20 @@ namespace Proyecto_Boletos.vistas
                         .Client.From<Orden>()
                         .Where(o => o.IdUsuario == _idUsuario)
                         .Get()
-                ).Models.Where(o =>
-                    string.Equals(
-                        o.EstadoOrden?.Trim(),
-                        "en espera",
-                        StringComparison.OrdinalIgnoreCase
+                )
+                    .Models.Where(o =>
+                        string.Equals(
+                            o.EstadoOrden?.Trim(),
+                            "en espera",
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                        || string.Equals(
+                            o.EstadoOrden?.Trim(),
+                            "pendiente",
+                            StringComparison.OrdinalIgnoreCase
+                        )
                     )
-                    || string.Equals(
-                        o.EstadoOrden?.Trim(),
-                        "pendiente",
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                ).ToList();
+                    .ToList();
 
                 var detalles = (await ConexionDB.Client.From<DetalleOrden>().Get()).Models;
                 var tiposBoleto = (await ConexionDB.Client.From<TipoBoleto>().Get()).Models;
@@ -538,9 +562,8 @@ namespace Proyecto_Boletos.vistas
                     foreach (var det in dets)
                     {
                         var tipo = tiposBoleto.Find(t => t.IdTipoBoleto == det.IdTipoBoleto);
-                        var evento = tipo != null
-                            ? eventos.Find(ev => ev.IdEvento == tipo.IdEvento)
-                            : null;
+                        var evento =
+                            tipo != null ? eventos.Find(ev => ev.IdEvento == tipo.IdEvento) : null;
 
                         vista.Add(
                             new OrdenEsperaVista
@@ -562,10 +585,23 @@ namespace Proyecto_Boletos.vistas
                 }
 
                 // Eventos creados con "Sin pago por ahora": también deben aparecer en espera
-                var eventosEnEspera = eventos.Where(ev =>
-                    ev.IdOrganizador == _idUsuario
-                    && string.Equals(ev.EstadoEvento?.Trim(), "En espera", StringComparison.OrdinalIgnoreCase)
-                ).ToList();
+                var eventosEnEspera = eventos
+                    .Where(ev =>
+                        ev.IdOrganizador == _idUsuario
+                        && (
+                            string.Equals(
+                                ev.EstadoEvento?.Trim(),
+                                "En espera",
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                            || string.Equals(
+                                ev.EstadoEvento?.Trim(),
+                                "En reserva",
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                    )
+                    .ToList();
 
                 if (eventosEnEspera.Count > 0)
                 {
@@ -581,9 +617,12 @@ namespace Proyecto_Boletos.vistas
                                 IdEvento = ev.IdEvento,
                                 NombreEvento = ev.NombreEvento,
                                 NombreTipoBoleto = "Evento (pago pendiente)",
-                                FechaOrden = fechaEv != null
-                                    ? fechaEv.FechaInicio.ToString("dd/MM/yyyy") + "  " + fechaEv.HoraInicio.ToString(@"hh\:mm")
-                                    : "—",
+                                FechaOrden =
+                                    fechaEv != null
+                                        ? fechaEv.FechaInicio.ToString("dd/MM/yyyy")
+                                            + "  "
+                                            + fechaEv.HoraInicio.ToString(@"hh\:mm")
+                                        : "—",
                                 Estado = ev.EstadoEvento,
                             }
                         );
@@ -637,7 +676,7 @@ namespace Proyecto_Boletos.vistas
                 {
                     Header = "Cant.",
                     Binding = new Binding("CantidadDisplay"),
-                    Width = 55,
+                    Width = 100,
                     ElementStyle = tc,
                 }
             );
@@ -646,7 +685,7 @@ namespace Proyecto_Boletos.vistas
                 {
                     Header = "Total",
                     Binding = new Binding("TotalFormateado"),
-                    Width = 90,
+                    Width = 100,
                     ElementStyle = tc,
                 }
             );
@@ -655,13 +694,17 @@ namespace Proyecto_Boletos.vistas
                 {
                     Header = "Fecha",
                     Binding = new Binding("FechaOrden"),
-                    Width = 120,
+                    Width = 200,
                     ElementStyle = tc,
                 }
             );
 
-            dgEspera.Columns.Add(CrearColumnaBoton("Pagar", Color.FromRgb(46, 125, 90), BtnPagar_Click));
-            dgEspera.Columns.Add(CrearColumnaBoton("Descartar", Color.FromRgb(244, 67, 54), BtnDescartar_Click));
+            dgEspera.Columns.Add(
+                CrearColumnaBoton("Pagar", Color.FromRgb(46, 125, 90), BtnPagar_Click)
+            );
+            dgEspera.Columns.Add(
+                CrearColumnaBoton("Descartar", Color.FromRgb(244, 67, 54), BtnDescartar_Click)
+            );
         }
 
         private DataGridTemplateColumn CrearColumnaBoton(
@@ -676,15 +719,9 @@ namespace Proyecto_Boletos.vistas
             factory.SetValue(Button.ContentProperty, label);
             factory.SetValue(Button.HeightProperty, 26.0);
             factory.SetValue(Button.PaddingProperty, new Thickness(8, 0, 8, 0));
-            factory.SetValue(
-                Button.BackgroundProperty,
-                new SolidColorBrush(color)
-            );
+            factory.SetValue(Button.BackgroundProperty, new SolidColorBrush(color));
             factory.SetValue(Button.ForegroundProperty, Brushes.White);
-            factory.SetValue(
-                Button.BorderBrushProperty,
-                new SolidColorBrush(color)
-            );
+            factory.SetValue(Button.BorderBrushProperty, new SolidColorBrush(color));
             factory.SetValue(Button.CursorProperty, System.Windows.Input.Cursors.Hand);
             factory.AddHandler(Button.ClickEvent, handler);
             tpl.VisualTree = factory;
@@ -713,7 +750,8 @@ namespace Proyecto_Boletos.vistas
                     {
                         new LineaDesglose
                         {
-                            Concepto = $"{item.NombreEvento} — {item.NombreTipoBoleto} x{item.Cantidad}",
+                            Concepto =
+                                $"{item.NombreEvento} — {item.NombreTipoBoleto} x{item.Cantidad}",
                             Monto = item.Total,
                         },
                     };
@@ -786,13 +824,7 @@ namespace Proyecto_Boletos.vistas
             {
                 try
                 {
-                    var ventanaPago = new PagoEventoDialog(_metodosPago);
-                    ventanaPago.Owner = Window.GetWindow(this);
-                    ventanaPago.ShowDialog();
-
-                    if (ventanaPago.Resultado != ResultadoPago.Pagar)
-                        return;
-
+                    // 1. Recuperar el evento
                     var eventoDb = (
                         await ConexionDB
                             .Client.From<Evento>()
@@ -801,8 +833,89 @@ namespace Proyecto_Boletos.vistas
                     ).Models.FirstOrDefault();
 
                     if (eventoDb == null)
+                    {
+                        MessageBox.Show("No se encontró el evento.", "Error",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    var desglose = new List<LineaDesglose>();
+
+                    // 2. Precio del recinto
+                    if (eventoDb.IdRecinto.HasValue)
+                    {
+                        var recintoDb = (
+                            await ConexionDB
+                                .Client.From<Recinto>()
+                                .Where(r => r.IdRecinto == eventoDb.IdRecinto.Value)
+                                .Get()
+                        ).Models.FirstOrDefault();
+
+                        if (recintoDb != null)
+                        {
+                            desglose.Add(new LineaDesglose
+                            {
+                                Concepto = $"Recinto: {recintoDb.NombreRecinto} (Bs/hora)",
+                                Monto = (decimal)recintoDb.PrecioHora,
+                            });
+                        }
+                    }
+
+                    // 3. Servicios vinculados al evento → precio desde DetalleProveedorServicio
+                    var eventosServicios = (
+                        await ConexionDB
+                            .Client.From<EventoServicio>()
+                            .Where(es => es.IdEvento == eventoDb.IdEvento)
+                            .Get()
+                    ).Models;
+
+                    if (eventosServicios.Count > 0)
+                    {
+                        var todosServicios = (await ConexionDB.Client.From<Servicio>().Get()).Models;
+                        var todosItems = (await ConexionDB.Client.From<DetalleProveedorServicio>().Get()).Models;
+
+                        foreach (var es in eventosServicios)
+                        {
+                            var servicio = todosServicios.Find(s => s.IdServicio == es.IdServicio);
+                            // Tomar el primer item oferta que coincida con ese servicio
+                            var itemOferta = todosItems.Find(i => i.IdServicio == es.IdServicio);
+
+                            string nombreConcepto = servicio?.NombreServicio
+                                ?? itemOferta?.NombreItem
+                                ?? $"Servicio #{es.IdServicio}";
+
+                            if (es.Cantidad > 1)
+                                nombreConcepto += $" x{es.Cantidad}";
+
+                            decimal precioUnitario = itemOferta != null ? (decimal)itemOferta.PrecioItem : 0m;
+                            decimal montoTotal = precioUnitario * es.Cantidad;
+
+                            desglose.Add(new LineaDesglose
+                            {
+                                Concepto = $"Servicio: {nombreConcepto}",
+                                Monto = montoTotal,
+                            });
+                        }
+                    }
+
+                    if (desglose.Count == 0)
+                    {
+                        desglose.Add(new LineaDesglose
+                        {
+                            Concepto = $"Evento: {eventoDb.NombreEvento}",
+                            Monto = 0m,
+                        });
+                    }
+
+                    // 4. Abrir diálogo de pago con el desglose
+                    var ventanaPago = new PagoEventoDialog(_metodosPago, desglose);
+                    ventanaPago.Owner = Window.GetWindow(this);
+                    ventanaPago.ShowDialog();
+
+                    if (ventanaPago.Resultado != ResultadoPago.Pagar)
                         return;
 
+                    // 5. Marcar evento y reserva como Programado
                     eventoDb.EstadoEvento = "Programado";
                     await ConexionDB.Client.From<Evento>().Update(eventoDb);
 
@@ -822,37 +935,33 @@ namespace Proyecto_Boletos.vistas
                         }
                     }
 
+                    // 6. Crear orden y pago
                     var ordenResp = await ConexionDB
                         .Client.From<Orden>()
-                        .Insert(
-                            new Orden
-                            {
-                                IdUsuario = _idUsuario,
-                                FechaOrden = DateTime.Now,
-                                EstadoOrden = "pagado",
-                                DescuentoOrden = ventanaPago.Descuento,
-                                CompradorNombre =
-                                    $"{ventanaPago.ClienteNombre} {ventanaPago.ClienteApellido}".Trim(),
-                                CompradorNit = ventanaPago.ClienteNit,
-                                CompradorCorreo = ventanaPago.ClienteCorreo,
-                            }
-                        );
+                        .Insert(new Orden
+                        {
+                            IdUsuario = _idUsuario,
+                            FechaOrden = DateTime.Now,
+                            EstadoOrden = "pagado",
+                            DescuentoOrden = ventanaPago.Descuento,
+                            CompradorNombre = $"{ventanaPago.ClienteNombre} {ventanaPago.ClienteApellido}".Trim(),
+                            CompradorNit = ventanaPago.ClienteNit,
+                            CompradorCorreo = ventanaPago.ClienteCorreo,
+                        });
                     var ordenInserta = ordenResp.Models.First();
 
                     await ConexionDB
                         .Client.From<Pago>()
-                        .Insert(
-                            new Pago
-                            {
-                                IdOrden = ordenInserta.IdOrden,
-                                IdMetodoPago = ventanaPago.IdMetodoPagoSeleccionado,
-                                MontoPago = ventanaPago.TotalFinal,
-                                Moneda = "BOB",
-                                FechaPago = DateTime.Now,
-                                EstadoPago = "pagado",
-                                ReferenciaPago = ventanaPago.Nota,
-                            }
-                        );
+                        .Insert(new Pago
+                        {
+                            IdOrden = ordenInserta.IdOrden,
+                            IdMetodoPago = ventanaPago.IdMetodoPagoSeleccionado,
+                            MontoPago = ventanaPago.TotalFinal,
+                            Moneda = "BOB",
+                            FechaPago = DateTime.Now,
+                            EstadoPago = "pagado",
+                            ReferenciaPago = ventanaPago.Nota,
+                        });
 
                     MessageBox.Show(
                         "Evento marcado como pagado. Ya aparecerá en el calendario como Programado.",
@@ -1026,6 +1135,7 @@ namespace Proyecto_Boletos.vistas
                         .Get()
                 ).Models.Where(o =>
                     string.Equals(o.EstadoOrden?.Trim(), "pagado", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(o.EstadoOrden?.Trim(), "Programado", StringComparison.OrdinalIgnoreCase) // ← NUEVO
                 ).ToList();
 
                 var detalles = (await ConexionDB.Client.From<DetalleOrden>().Get()).Models;
@@ -1040,41 +1150,44 @@ namespace Proyecto_Boletos.vistas
                 {
                     var dets = detalles.Where(d => d.IdOrden == orden.IdOrden).ToList();
                     var pagoOrden = pagos.Find(p => p.IdOrden == orden.IdOrden);
-                    var metodoPago = pagoOrden != null
-                        ? metodosPago.Find(m => m.IdMetodoPago == pagoOrden.IdMetodoPago)
-                        : null;
+                    var metodoPago =
+                        pagoOrden != null
+                            ? metodosPago.Find(m => m.IdMetodoPago == pagoOrden.IdMetodoPago)
+                            : null;
 
                     foreach (var det in dets)
                     {
                         var tipo = tiposBoleto.Find(t => t.IdTipoBoleto == det.IdTipoBoleto);
-                        var evento = tipo != null
-                            ? eventos.Find(ev => ev.IdEvento == tipo.IdEvento)
-                            : null;
+                        var evento =
+                            tipo != null ? eventos.Find(ev => ev.IdEvento == tipo.IdEvento) : null;
 
                         decimal subtotal = det.PrecioUnitario * det.Cantidad;
                         decimal honorario = Math.Round(subtotal * 0.10m, 2);
                         decimal total = subtotal + honorario - orden.DescuentoOrden;
-                        if (total < 0) total = 0;
+                        if (total < 0)
+                            total = 0;
 
-                        vista.Add(new CompraHistorialVista
-                        {
-                            IdOrden = orden.IdOrden,
-                            IdDetalleOrden = det.IdDetalleOrden,
-                            NombreEvento = evento?.NombreEvento ?? "—",
-                            NombreTipoBoleto = tipo?.NombreTipoBoleto ?? "—",
-                            Cantidad = det.Cantidad,
-                            PrecioUnitario = det.PrecioUnitario,
-                            Subtotal = subtotal,
-                            Honorario = honorario,
-                            Descuento = orden.DescuentoOrden,
-                            TotalPagado = pagoOrden?.MontoPago ?? total,
-                            FechaCompra = orden.FechaOrden.ToString("dd/MM/yyyy HH:mm"),
-                            EstadoPago = pagoOrden?.EstadoPago ?? orden.EstadoOrden,
-                            CompradorNombre = orden.CompradorNombre,
-                            CompradorNit = orden.CompradorNit,
-                            CompradorCorreo = orden.CompradorCorreo,
-                            MetodoPago = metodoPago?.Nombre ?? "—",
-                        });
+                        vista.Add(
+                            new CompraHistorialVista
+                            {
+                                IdOrden = orden.IdOrden,
+                                IdDetalleOrden = det.IdDetalleOrden,
+                                NombreEvento = evento?.NombreEvento ?? "—",
+                                NombreTipoBoleto = tipo?.NombreTipoBoleto ?? "—",
+                                Cantidad = det.Cantidad,
+                                PrecioUnitario = det.PrecioUnitario,
+                                Subtotal = subtotal,
+                                Honorario = honorario,
+                                Descuento = orden.DescuentoOrden,
+                                TotalPagado = pagoOrden?.MontoPago ?? total,
+                                FechaCompra = orden.FechaOrden.ToString("dd/MM/yyyy HH:mm"),
+                                EstadoPago = pagoOrden?.EstadoPago ?? orden.EstadoOrden,
+                                CompradorNombre = orden.CompradorNombre,
+                                CompradorNit = orden.CompradorNit,
+                                CompradorCorreo = orden.CompradorCorreo,
+                                MetodoPago = metodoPago?.Nombre ?? "—",
+                            }
+                        );
                     }
                 }
 
@@ -1105,61 +1218,73 @@ namespace Proyecto_Boletos.vistas
             dgHistorial.Columns.Clear();
             var tc = (Style)Application.Current.FindResource("TextoCentrado");
 
-            dgHistorial.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Evento",
-                Binding = new Binding("NombreEvento"),
-                Width = new DataGridLength(2, DataGridLengthUnitType.Star),
-                ElementStyle = tc,
-            });
-            dgHistorial.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Tipo Boleto",
-                Binding = new Binding("NombreTipoBoleto"),
-                Width = new DataGridLength(1, DataGridLengthUnitType.Star),
-                ElementStyle = tc,
-            });
-            dgHistorial.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Cant.",
-                Binding = new Binding("Cantidad"),
-                Width = 50,
-                ElementStyle = tc,
-            });
-            dgHistorial.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Total Pagado",
-                Binding = new Binding("TotalPagadoFormateado"),
-                Width = 100,
-                ElementStyle = tc,
-            });
-            dgHistorial.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Fecha Compra",
-                Binding = new Binding("FechaCompra"),
-                Width = 120,
-                ElementStyle = tc,
-            });
-            dgHistorial.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Estado",
-                Binding = new Binding("EstadoPago"),
-                Width = 80,
-                ElementStyle = tc,
-            });
-            dgHistorial.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Método",
-                Binding = new Binding("MetodoPago"),
-                Width = 80,
-                ElementStyle = tc,
-            });
+            dgHistorial.Columns.Add(
+                new DataGridTextColumn
+                {
+                    Header = "Evento",
+                    Binding = new Binding("NombreEvento"),
+                    Width = new DataGridLength(2, DataGridLengthUnitType.Star),
+                    ElementStyle = tc,
+                }
+            );
+            dgHistorial.Columns.Add(
+                new DataGridTextColumn
+                {
+                    Header = "Tipo Boleto",
+                    Binding = new Binding("NombreTipoBoleto"),
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                    ElementStyle = tc,
+                }
+            );
+            dgHistorial.Columns.Add(
+                new DataGridTextColumn
+                {
+                    Header = "Cant.",
+                    Binding = new Binding("Cantidad"),
+                    Width = 70,
+                    ElementStyle = tc,
+                }
+            );
+            dgHistorial.Columns.Add(
+                new DataGridTextColumn
+                {
+                    Header = "Total Pagado",
+                    Binding = new Binding("TotalPagadoFormateado"),
+                    Width = 130,
+                    ElementStyle = tc,
+                }
+            );
+            dgHistorial.Columns.Add(
+                new DataGridTextColumn
+                {
+                    Header = "Fecha Compra",
+                    Binding = new Binding("FechaCompra"),
+                    Width = 160,
+                    ElementStyle = tc,
+                }
+            );
+            dgHistorial.Columns.Add(
+                new DataGridTextColumn
+                {
+                    Header = "Estado",
+                    Binding = new Binding("EstadoPago"),
+                    Width = 90,
+                    ElementStyle = tc,
+                }
+            );
+            dgHistorial.Columns.Add(
+                new DataGridTextColumn
+                {
+                    Header = "Método",
+                    Binding = new Binding("MetodoPago"),
+                    Width = 90,
+                    ElementStyle = tc,
+                }
+            );
 
-            dgHistorial.Columns.Add(CrearColumnaBoton(
-                "Ver Factura",
-                Color.FromRgb(46, 125, 90),
-                BtnVerFactura_Click
-            ));
+            dgHistorial.Columns.Add(
+                CrearColumnaBoton("Ver Factura", Color.FromRgb(46, 125, 90), BtnVerFactura_Click)
+            );
         }
 
         private void BtnVerFactura_Click(object sender, RoutedEventArgs e)
@@ -1190,7 +1315,6 @@ namespace Proyecto_Boletos.vistas
             ventana.Owner = Window.GetWindow(this);
             ventana.ShowDialog();
         }
-
     } // end CarritoView
 
     // ─── MODELOS DE VISTA ────────────────────────────────────────────────────────
@@ -1204,7 +1328,8 @@ namespace Proyecto_Boletos.vistas
         public string NombreRecinto { get; set; } = string.Empty;
         public decimal PrecioBase { get; set; }
         public long BoletosDisponibles { get; set; }
-        public List<TipoBoletoCardVista> TiposBoleto { get; set; } = new List<TipoBoletoCardVista>();
+        public List<TipoBoletoCardVista> TiposBoleto { get; set; } =
+            new List<TipoBoletoCardVista>();
     }
 
     public class TipoBoletoCardVista

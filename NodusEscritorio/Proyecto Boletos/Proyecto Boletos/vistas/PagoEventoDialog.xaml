@@ -133,7 +133,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Margin="0,0,0,8">
           <TextBlock Text="Monto Recibido (Bs)" FontWeight="SemiBold" Margin="0,0,0,4" />
-          <TextBox x:Name="txtMonto" Padding="6,5" />
+          <TextBox x:Name="txtMonto" Padding="6,5" IsReadOnly="True"/>
         </StackPanel>
         <StackPanel Grid.Row="1">
           <TextBlock Text="Nota (Opcional)" FontWeight="SemiBold" Margin="0,0,0,4" />

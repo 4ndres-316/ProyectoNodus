@@ -119,6 +119,11 @@ namespace Proyecto_Boletos
             MainContent.Content = new vistas.CarritoView(_usuarioActual.IdUsuario);
         }
 
+        public void AbrirCarritoEnEspera()
+        {
+            MainContent.Content = new vistas.CarritoView(_usuarioActual.IdUsuario, "espera");
+        }
+
         private void btnClientes_Click(object sender, RoutedEventArgs e)
         {
             MainContent.Content = new vistas.ClientesView(_usuarioActual.IdUsuario);

@@ -57,6 +57,11 @@
       Margin="0,0,0,10"
     >
       <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="8" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="2*" />
           <ColumnDefinition Width="10" />
@@ -73,37 +78,38 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="0">
+        <StackPanel Grid.Row="0" Grid.Column="0">
           <TextBlock Text="Nombre del evento *" FontSize="11" Foreground="#555" Margin="0,0,0,3" />
           <TextBox x:Name="txtNombreEvento" Padding="6,5" />
         </StackPanel>
 
-        <StackPanel Grid.Column="2">
+        <StackPanel Grid.Row="0" Grid.Column="2">
           <TextBlock Text="Fecha inicio *" FontSize="11" Foreground="#555" Margin="0,0,0,3" />
           <DatePicker x:Name="dpFechaInicio" />
         </StackPanel>
 
-        <StackPanel Grid.Column="4">
+        <StackPanel Grid.Row="0" Grid.Column="4">
           <TextBlock Text="Hora inicio" FontSize="11" Foreground="#555" Margin="0,0,0,3" />
           <TextBox x:Name="txtHoraInicio" Text="08:00" Padding="4,5" TextAlignment="Center" />
         </StackPanel>
 
-        <StackPanel Grid.Column="6">
+        <StackPanel Grid.Row="0" Grid.Column="6">
           <TextBlock Text="Fecha fin *" FontSize="11" Foreground="#555" Margin="0,0,0,3" />
           <DatePicker x:Name="dpFechaFin" />
         </StackPanel>
 
-        <StackPanel Grid.Column="8">
+        <StackPanel Grid.Row="0" Grid.Column="8">
           <TextBlock Text="Hora fin" FontSize="11" Foreground="#555" Margin="0,0,0,3" />
           <TextBox x:Name="txtHoraFin" Text="18:00" Padding="4,5" TextAlignment="Center" />
         </StackPanel>
 
-        <StackPanel Grid.Column="10">
+        <StackPanel Grid.Row="0" Grid.Column="10">
           <TextBlock Text="Max. inv." FontSize="11" Foreground="#555" Margin="0,0,0,3" />
           <TextBox x:Name="txtMaxInvitados" Text="0" Padding="4,5" TextAlignment="Center" />
         </StackPanel>
 
         <CheckBox
+          Grid.Row="0"
           Grid.Column="12"
           x:Name="chkEsPublico"
           Content="Publico"
@@ -111,7 +117,29 @@
           Margin="0,4,0,0"
           FontSize="12"
           Checked="chkEsPublico_Checked"
+          Unchecked="chkEsPublico_Unchecked"
         />
+
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5">
+          <TextBlock Text="URL del evento" FontSize="11" Foreground="#555" Margin="0,0,0,3" />
+          <TextBox x:Name="txtImagen" Padding="6,5" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Grid.Column="6" Grid.ColumnSpan="7">
+          <TextBlock Text="Categoria" FontSize="11" Foreground="#555" Margin="0,0,0,3" />
+          <ComboBox x:Name="cmbCategoria" Height="30" SelectedIndex="0">
+            <ComboBoxItem Content="Concierto General" />
+            <ComboBoxItem Content="Comida y Gastronomía" />
+            <ComboBoxItem Content="Teatro y Artes Escénicas" />
+            <ComboBoxItem Content="Deporte y Competición" />
+            <ComboBoxItem Content="Conferencia / Seminario" />
+            <ComboBoxItem Content="Festival de Música" />
+            <ComboBoxItem Content="Stand-up Comedy" />
+            <ComboBoxItem Content="Exposición de Arte" />
+            <ComboBoxItem Content="Fiesta / Club / DJ" />
+            <ComboBoxItem Content="Personal" />
+          </ComboBox>
+        </StackPanel>
       </Grid>
     </Border>
 
@@ -446,7 +474,9 @@
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="8" />
-                  <ColumnDefinition Width="220" />
+                  <ColumnDefinition Width="140" />
+                  <ColumnDefinition Width="8" />
+                  <ColumnDefinition Width="110" />
                   <ColumnDefinition Width="8" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
@@ -463,9 +493,16 @@
                   VerticalAlignment="Center"
                   Background="White"
                 />
+                <TextBox
+                  x:Name="txtCantidadBoleto"
+                  Padding="6,4"
+                  Grid.Column="4"
+                  VerticalAlignment="Center"
+                  Background="White"
+                />
 
                 <Button
-                  Grid.Column="4"
+                  Grid.Column="6"
                   Content="+ Agregar Boleto"
                   Height="30"
                   Padding="12,0"
@@ -474,6 +511,7 @@
                   BorderBrush="White"
                   FontWeight="SemiBold"
                   Cursor="Hand"
+                  Click="btnAgregarBoleto_Click"
                 />
               </Grid>
             </Border>
@@ -484,13 +522,18 @@
                 <GridView>
                   <GridViewColumn
                     Header="Tipo Boleto"
-                    Width="350"
+                    Width="280"
                     DisplayMemberBinding="{Binding Nombre}"
                   />
                   <GridViewColumn
                     Header="Precio"
-                    Width="150"
-                    DisplayMemberBinding="{Binding Tipo}"
+                    Width="100"
+                    DisplayMemberBinding="{Binding PrecioFormateado}"
+                  />
+                  <GridViewColumn
+                    Header="Cantidad"
+                    Width="90"
+                    DisplayMemberBinding="{Binding Cantidad}"
                   />
                   <GridViewColumn Header="" Width="90">
                     <GridViewColumn.CellTemplate>
@@ -505,6 +548,7 @@
                           Foreground="White"
                           BorderBrush="#F44336"
                           Cursor="Hand"
+                          Click="btnQuitarBoleto_Click"
                         />
                       </DataTemplate>
                     </GridViewColumn.CellTemplate>
@@ -616,35 +660,18 @@
     >
       <Grid>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="8" />
           <ColumnDefinition Width="23" />
         </Grid.ColumnDefinitions>
-        <TextBlock
-          Text="Imagen de Evento: "
-          Grid.Column="0"
-          VerticalAlignment="Center"
-          Foreground="{DynamicResource Color4}"
-          FontSize="12"
-          Margin="0,0,5,0"
-        />
-        <TextBox
-          x:Name="txtImagen"
-          Grid.Column="1"
-          Height="32"
-          Padding="4"
-          VerticalContentAlignment="Center"
-        />
         <TextBox
           x:Name="txtCantidad"
-          Grid.Column="3"
+          Grid.Column="2"
           Text="1"
           Height="32"
           Padding="4"
           TextAlignment="Center"
           VerticalContentAlignment="Center"
-          IsEnabled="False"
         />
       </Grid>
     </Border>
